@@ -34,9 +34,8 @@ void Camera::UpdateCamera(float dt) {
 	float zSpeed = CAMERA_Z_SPEED * dt;
 	float xSpeed = CAMERA_X_SPEED * dt;
 	float ySpeed = CAMERA_Y_SPEED * dt;
-	//控制摄像头位置
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_W)) {
-		position += forward * zSpeed; //forward控制速度，每30个单位移动多少距离
+		position += forward * zSpeed;
 	}
 	else {
 		position += forward * deSpeed;
@@ -50,7 +49,6 @@ void Camera::UpdateCamera(float dt) {
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_D)) {
 		position += right * xSpeed;
 	}
-	//控制上下
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_SHIFT)) {
 		position.y += ySpeed;
 	}

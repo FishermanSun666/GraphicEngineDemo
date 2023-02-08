@@ -96,17 +96,17 @@ protected:
 	MeshMaterial* material;
 	MeshMaterial* treeMaterial;
 	vector<GLuint> matTextures;
+    //role
 	Vector3 rolePosition;
-	bool roleDir = false;
+	int roleDir = -1;
 	int currentFrame;
 	float frameTime;
-
+	//water
 	float waterRotate;
 	float waterCycle;
 
-
 	Frustum frameFrustum;
-
+	//node list
 	SceneNode* root;
 	vector<SceneNode*> transparentNodeList;
 	vector<SceneNode*> nodeList;

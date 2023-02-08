@@ -1,14 +1,14 @@
 #include "Renderer.h"
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
+	//initialize
 	quad = Mesh::GenerateQuad();
 	heightMap = new HeightMap(TEXTUREDIR"noise.png");
-
 	Vector3 heightmapSize = heightMap->GetHeightmapSize();
 	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.65f, 3.0f, 0.65f));
 	light = new Light(heightmapSize * Vector3(0.5f, 1.5f, 0.5f),
 		Vector4(2.2, 2.275, 2.15, 1), heightmapSize.x);
-
+	//load texture
 	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"water.TGA",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	earthTex = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.JPG",
@@ -17,14 +17,11 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	muddyTex = SOIL_load_OGL_texture(TEXTUREDIR"muddy.png",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-
 	cubeMap = SOIL_load_OGL_cubemap(
 		TEXTUREDIR"blizzard_rt.jpg", TEXTUREDIR"blizzard_lf.jpg",
 		TEXTUREDIR"blizzard_up.jpg", TEXTUREDIR"blizzard_dn.jpg",
 		TEXTUREDIR "blizzard_bk.jpg", TEXTUREDIR"blizzard_ft.jpg",
 		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
-
-	
 	if (!earthTex || !earthBump || !cubeMap || !waterTex) {
 		return;
 	}
@@ -200,16 +197,11 @@ void Renderer::LoadRole() {
 }
 
 void Renderer::UpdateRoleFrame(float dt) {
-	//role move
-	if (rolePosition.z > heightMap->GetHeightmapSize().z * ROLE_MOVE_MAX || rolePosition.z < heightMap->GetHeightmapSize().z * ROLE_POS_Z) {
-		roleDir = !roleDir;
+	//role turn
+	if (rolePosition.z >= heightMap->GetHeightmapSize().z * ROLE_MOVE_MAX || rolePosition.z <= heightMap->GetHeightmapSize().z * ROLE_POS_Z-1) {
+		roleDir *= -1;
 	}
-	if (roleDir) {
-		rolePosition.z -= ROLE_MOVE_SPEED * dt;
-	}
-	else {
-		rolePosition.z += ROLE_MOVE_SPEED * dt;
-	}
+	rolePosition.z -= ROLE_MOVE_SPEED * dt * roleDir;
 	rolePosition.y = heightMap->GetHeight(rolePosition.x, rolePosition.z);
 	//role frame
 	frameTime -= dt;
@@ -225,8 +217,8 @@ void Renderer::DrawRole() {
 		"roleTex"), 0);
 	glUniform1i(glGetUniformLocation(sceneShader->GetProgram(),
 		"shadeType"), 0);
-	auto height = heightMap->GetHeightmapSize();
-	auto rotation = roleDir ? Matrix4::Rotation(180, Vector3(0, 1, 0)) : Matrix4::Rotation(0, Vector3(0, 1, 0));
+	Vector3 height = heightMap->GetHeightmapSize();
+	Matrix4 rotation = roleDir > 0 ? Matrix4::Rotation(180, Vector3(0, 1, 0)) : Matrix4::Rotation(0, Vector3(0, 1, 0));
 	modelMatrix = Matrix4::Translation(rolePosition) * Matrix4::Scale(Vector3(30, 30, 30)) * rotation;
 	UpdateShaderMatrices();
 	vector <Matrix4> frameMatrices;

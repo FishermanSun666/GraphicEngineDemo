@@ -1,0 +1,136 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Graphics Coursework", "Graphics Coursework", "{B12FA29E-1613-4E55-9C1D-B7DCD8A760D8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nclgl", "nclgl\nclgl.vcxproj", "{98D6B51B-CB0A-4389-ADC6-24082B967C3F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Blank Project", "Blank Project\BlankProject.vcxproj", "{8274D442-89CD-4AC2-AA8E-A9FA621452ED}"
+	ProjectSection(ProjectDependencies) = postProject
+		{15681E3C-A747-42F0-B091-5F1300F14F52} = {15681E3C-A747-42F0-B091-5F1300F14F52}
+		{98D6B51B-CB0A-4389-ADC6-24082B967C3F} = {98D6B51B-CB0A-4389-ADC6-24082B967C3F}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZXEmulator", "ZXEmulator\ZXEmulator.vcxproj", "{15681E3C-A747-42F0-B091-5F1300F14F52}"
+	ProjectSection(ProjectDependencies) = postProject
+		{98D6B51B-CB0A-4389-ADC6-24082B967C3F} = {98D6B51B-CB0A-4389-ADC6-24082B967C3F}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{1A82F992-675B-4CE3-8F0E-4ADB3353E4F7}"
+	ProjectSection(SolutionItems) = preProject
+		Shaders\basicVertex.glsl = Shaders\basicVertex.glsl
+		Shaders\bufferFragment.glsl = Shaders\bufferFragment.glsl
+		Shaders\BumpFragment.glsl = Shaders\BumpFragment.glsl
+		Shaders\BumpVertex.glsl = Shaders\BumpVertex.glsl
+		Shaders\colourFragment.glsl = Shaders\colourFragment.glsl
+		Shaders\combinefrag.glsl = Shaders\combinefrag.glsl
+		Shaders\combinevert.glsl = Shaders\combinevert.glsl
+		Shaders\coursework_texture_fragment.glsl = Shaders\coursework_texture_fragment.glsl
+		Shaders\MatrixVertex.glsl = Shaders\MatrixVertex.glsl
+		Shaders\PerPixelFragment.glsl = Shaders\PerPixelFragment.glsl
+		Shaders\PerPixelVertex.glsl = Shaders\PerPixelVertex.glsl
+		Shaders\pointlightfrag.glsl = Shaders\pointlightfrag.glsl
+		Shaders\pointlightvertex.glsl = Shaders\pointlightvertex.glsl
+		Shaders\reflectFragment.glsl = Shaders\reflectFragment.glsl
+		Shaders\reflectVertex.glsl = Shaders\reflectVertex.glsl
+		Shaders\SceneFragment.glsl = Shaders\SceneFragment.glsl
+		Shaders\SceneVertex.glsl = Shaders\SceneVertex.glsl
+		Shaders\shadowFrag.glsl = Shaders\shadowFrag.glsl
+		Shaders\shadowscenefrag.glsl = Shaders\shadowscenefrag.glsl
+		Shaders\shadowscenevert.glsl = Shaders\shadowscenevert.glsl
+		Shaders\shadowVert.glsl = Shaders\shadowVert.glsl
+		Shaders\SkinningVertex.glsl = Shaders\SkinningVertex.glsl
+		Shaders\skyboxFragment.glsl = Shaders\skyboxFragment.glsl
+		Shaders\skyboxVertex.glsl = Shaders\skyboxVertex.glsl
+		Shaders\StencilFragment.glsl = Shaders\StencilFragment.glsl
+		Shaders\TexturedFragment.glsl = Shaders\TexturedFragment.glsl
+		Shaders\TexturedVertex.glsl = Shaders\TexturedVertex.glsl
+		Shaders\zxFragment.glsl = Shaders\zxFragment.glsl
+		Shaders\zxVertex.glsl = Shaders\zxVertex.glsl
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Textures", "Textures", "{1E812181-A7FC-4E8B-B18F-9D1048E803C0}"
+	ProjectSection(SolutionItems) = preProject
+		Textures\Barren Reds.JPG = Textures\Barren Reds.JPG
+		Textures\Barren RedsDOT3.JPG = Textures\Barren RedsDOT3.JPG
+		Textures\brick.tga = Textures\brick.tga
+		Textures\brickDOT3.tga = Textures\brickDOT3.tga
+		Textures\noise.png = Textures\noise.png
+		Textures\particle.tga = Textures\particle.tga
+		Textures\reticle.tga = Textures\reticle.tga
+		Textures\rusted_down.jpg = Textures\rusted_down.jpg
+		Textures\rusted_east.jpg = Textures\rusted_east.jpg
+		Textures\rusted_north.jpg = Textures\rusted_north.jpg
+		Textures\rusted_south.jpg = Textures\rusted_south.jpg
+		Textures\rusted_up.jpg = Textures\rusted_up.jpg
+		Textures\rusted_west.jpg = Textures\rusted_west.jpg
+		Textures\stainedglass.tga = Textures\stainedglass.tga
+		Textures\star.png = Textures\star.png
+		Textures\stubdot3.tga = Textures\stubdot3.tga
+		Textures\tahoma.tga = Textures\tahoma.tga
+		Textures\water.tga = Textures\water.tga
+		Textures\waterbump.png = Textures\waterbump.png
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RealisticCharacter", "RealisticCharacter", "{3D75C36B-9D53-4ACE-993C-8853FB7B41F6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "role", "role", "{58F5AEFD-4DF5-4D11-A3FB-749CE6834F7C}"
+	ProjectSection(SolutionItems) = preProject
+		Textures\RealisticCharacter\role\Body.tga = Textures\RealisticCharacter\role\Body.tga
+		Textures\RealisticCharacter\role\Hair.tga = Textures\RealisticCharacter\role\Hair.tga
+		Textures\RealisticCharacter\role\head.tga = Textures\RealisticCharacter\role\head.tga
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "weapon", "weapon", "{B62E4CC4-A4BF-4CCA-8162-B5D52A3AC022}"
+	ProjectSection(SolutionItems) = preProject
+		Textures\RealisticCharacter\weapon\Weapon.tga = Textures\RealisticCharacter\weapon\Weapon.tga
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Debug|x64.ActiveCfg = Debug|x64
+		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Debug|x64.Build.0 = Debug|x64
+		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Debug|x86.ActiveCfg = Debug|Win32
+		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Debug|x86.Build.0 = Debug|Win32
+		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Release|x64.ActiveCfg = Release|x64
+		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Release|x64.Build.0 = Release|x64
+		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Release|x86.ActiveCfg = Release|Win32
+		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Release|x86.Build.0 = Release|Win32
+		{8274D442-89CD-4AC2-AA8E-A9FA621452ED}.Debug|x64.ActiveCfg = Debug|x64
+		{8274D442-89CD-4AC2-AA8E-A9FA621452ED}.Debug|x64.Build.0 = Debug|x64
+		{8274D442-89CD-4AC2-AA8E-A9FA621452ED}.Debug|x86.ActiveCfg = Debug|Win32
+		{8274D442-89CD-4AC2-AA8E-A9FA621452ED}.Debug|x86.Build.0 = Debug|Win32
+		{8274D442-89CD-4AC2-AA8E-A9FA621452ED}.Release|x64.ActiveCfg = Release|x64
+		{8274D442-89CD-4AC2-AA8E-A9FA621452ED}.Release|x64.Build.0 = Release|x64
+		{8274D442-89CD-4AC2-AA8E-A9FA621452ED}.Release|x86.ActiveCfg = Release|Win32
+		{8274D442-89CD-4AC2-AA8E-A9FA621452ED}.Release|x86.Build.0 = Release|Win32
+		{15681E3C-A747-42F0-B091-5F1300F14F52}.Debug|x64.ActiveCfg = Debug|x64
+		{15681E3C-A747-42F0-B091-5F1300F14F52}.Debug|x64.Build.0 = Debug|x64
+		{15681E3C-A747-42F0-B091-5F1300F14F52}.Debug|x86.ActiveCfg = Debug|Win32
+		{15681E3C-A747-42F0-B091-5F1300F14F52}.Debug|x86.Build.0 = Debug|Win32
+		{15681E3C-A747-42F0-B091-5F1300F14F52}.Release|x64.ActiveCfg = Release|x64
+		{15681E3C-A747-42F0-B091-5F1300F14F52}.Release|x64.Build.0 = Release|x64
+		{15681E3C-A747-42F0-B091-5F1300F14F52}.Release|x86.ActiveCfg = Release|Win32
+		{15681E3C-A747-42F0-B091-5F1300F14F52}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8274D442-89CD-4AC2-AA8E-A9FA621452ED} = {B12FA29E-1613-4E55-9C1D-B7DCD8A760D8}
+		{3D75C36B-9D53-4ACE-993C-8853FB7B41F6} = {1E812181-A7FC-4E8B-B18F-9D1048E803C0}
+		{58F5AEFD-4DF5-4D11-A3FB-749CE6834F7C} = {3D75C36B-9D53-4ACE-993C-8853FB7B41F6}
+		{B62E4CC4-A4BF-4CCA-8162-B5D52A3AC022} = {3D75C36B-9D53-4ACE-993C-8853FB7B41F6}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EE1CFC99-AD82-4869-B6CB-66D4733450DC}
+	EndGlobalSection
+EndGlobal

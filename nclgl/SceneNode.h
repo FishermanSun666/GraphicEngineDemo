@@ -27,7 +27,7 @@ public:
 
 	void AddChild(SceneNode* s);
 	virtual void Update(float dt);
-	virtual void Draw(const OGLRenderer& r);
+	virtual void Draw(OGLRenderer& r);
 
 	float GetBoundingRadius() const { return boundingRadius; }
 	void SetBoundingRadius(float f) { boundingRadius = f; }

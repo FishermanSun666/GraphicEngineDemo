@@ -2,7 +2,7 @@
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	//initialize
-	quad = Mesh::GenerateQuad();
+	baseMesh = Mesh::GenerateQuad();
 	heightMap = new HeightMap(TEXTUREDIR"noise.png");
 	Vector3 heightmapSize = heightMap->GetHeightmapSize();
 	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.65f, 3.0f, 0.65f));
@@ -37,9 +37,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	if (!reflectShader->LoadSuccess() || !skyboxShader->LoadSuccess()|| !lightShader->LoadSuccess() || !sceneShader->LoadSuccess()) {
 		return;
 	}
-
-	
-	LoadRole();
+	//node tree
 	LoadNodes();
 
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
@@ -56,17 +54,30 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 }
 
 Renderer::~Renderer(void) {
-	delete camera;
-	delete heightMap;
-	delete quad;
-	delete reflectShader;
-	delete skyboxShader;
-	delete lightShader;
-	delete lightShader;
-	delete light;
-	delete anim;
-	delete material;
-	delete sceneShader;
+	if (camera) {
+		delete camera;
+	}
+	if (heightMap) {
+		delete heightMap;
+	}
+	if (baseMesh) {
+		delete baseMesh;
+	}
+	if (reflectShader) {
+		delete reflectShader;
+	}
+	if (skyboxShader) {
+		delete skyboxShader;
+	}
+	if (lightShader) {
+		delete lightShader;
+	}
+	if (light) {
+		delete light;
+	}
+	if (sceneShader) {
+		delete sceneShader;
+	}	
 }
 
 void Renderer::UpdateScene(float dt) {
@@ -76,15 +87,13 @@ void Renderer::UpdateScene(float dt) {
 		camera->SetYaw(yaw);
 	}
 	camera->UpdateCamera(dt);
-
+	//update frustum
 	viewMatrix = camera->BuildViewMatrix();
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
-
 	//rotate and shift the texture applied to the water slightly.
 	waterRotate += dt * 2.0f;
 	waterCycle += dt * 0.25f;
-	UpdateRoleFrame(dt);
-
+	//update node tree
 	root->Update(dt);
 }
 
@@ -98,20 +107,15 @@ void Renderer::RenderScene() {
 	SortNodeList();
 	UpdateShaderMatrices();
 
-	BindShader(sceneShader);
-	DrawRole();
 	DrawNodes();
 	ClearNodeLists();
 }
 
 void Renderer::DrawSkybox() {
 	glDepthMask(GL_FALSE);
-
 	BindShader(skyboxShader);
 	UpdateShaderMatrices();
-
-	quad->Draw();
-
+	baseMesh->Draw();
 	glDepthMask(GL_TRUE);
 }
 
@@ -171,71 +175,5 @@ void Renderer::DrawWater() {
 
 	UpdateShaderMatrices();
 	SetShaderLight(*light);
-	quad->Draw();
-}
-
-
-
-void Renderer::LoadRole() {
-	roleMesh = Mesh::LoadFromMeshFile("Role_T.msh");
-	anim = new MeshAnimation("Role_T.anm");
-	material = new MeshMaterial("Role_T.mat");
-	for (int i = 0; i < roleMesh->GetSubMeshCount(); ++i) {
-		const MeshMaterialEntry* matEntry =
-			material->GetMaterialForLayer(i);
-		const string* filename = nullptr;
-		matEntry->GetEntry("Diffuse", &filename);
-		string path = TEXTUREDIR + *filename;
-		GLuint texID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_AUTO,
-			SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-		matTextures.emplace_back(texID);
-	}
-	currentFrame = 0;
-	frameTime = 0.0f;
-	rolePosition = Vector3(ROLE_POS_X, 0.0f, ROLE_POS_Z) * heightMap->GetHeightmapSize();
-	rolePosition.y = heightMap->GetHeight(rolePosition.x, rolePosition.z);
-}
-
-void Renderer::UpdateRoleFrame(float dt) {
-	//role turn
-	if (rolePosition.z >= heightMap->GetHeightmapSize().z * ROLE_MOVE_MAX || rolePosition.z <= heightMap->GetHeightmapSize().z * ROLE_POS_Z-1) {
-		roleDir *= -1;
-	}
-	rolePosition.z -= ROLE_MOVE_SPEED * dt * roleDir;
-	rolePosition.y = heightMap->GetHeight(rolePosition.x, rolePosition.z);
-	//role frame
-	frameTime -= dt;
-	while (frameTime < 0.0f) {
-		currentFrame = (currentFrame + 1) % anim->GetFrameCount();
-		frameTime += 1.0f / anim->GetFrameRate();
-	}
-}
-
-
-void Renderer::DrawRole() {
-	glUniform1i(glGetUniformLocation(sceneShader->GetProgram(),
-		"roleTex"), 0);
-	glUniform1i(glGetUniformLocation(sceneShader->GetProgram(),
-		"shadeType"), 0);
-	Vector3 height = heightMap->GetHeightmapSize();
-	Matrix4 rotation = roleDir > 0 ? Matrix4::Rotation(180, Vector3(0, 1, 0)) : Matrix4::Rotation(0, Vector3(0, 1, 0));
-	modelMatrix = Matrix4::Translation(rolePosition) * Matrix4::Scale(Vector3(30, 30, 30)) * rotation;
-	UpdateShaderMatrices();
-	vector <Matrix4> frameMatrices;
-
-	const Matrix4* invBindPose = roleMesh->GetInverseBindPose();
-	const Matrix4* frameData = anim->GetJointData(currentFrame);
-
-	for (unsigned int i = 0; i < roleMesh->GetJointCount(); ++i) {
-		frameMatrices.emplace_back(frameData[i] * invBindPose[i]);
-	}
-
-	int j = glGetUniformLocation(sceneShader->GetProgram(), "joints");
-	glUniformMatrix4fv(j, frameMatrices.size(), false,
-		(float*)frameMatrices.data());
-	for (int i = 0; i < roleMesh->GetSubMeshCount(); ++i) {
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, matTextures[i]);
-		roleMesh->DrawSubMesh(i);
-	}
+	baseMesh->Draw();
 }

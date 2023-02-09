@@ -55,12 +55,13 @@ public:
 	virtual void	UpdateScene(float msec);
 	void			SwapBuffers();
 
-	bool			HasInitialised() const;	
-	
+	bool			HasInitialised() const;
+
+	void			UpdateModelMatrix(Matrix4 matrix) { modelMatrix = matrix; }
+	void			UpdateShaderMatrices();
 protected:
 	void SetShaderLight(const Light& l);
-	virtual void	Resize(int x, int y);	
-	void			UpdateShaderMatrices();
+	virtual void	Resize(int x, int y);
 	void			BindShader(Shader*s);
 	void SetTextureRepeating(GLuint target, bool state);
 	void StartDebugGroup(const std::string& s) {

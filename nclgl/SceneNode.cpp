@@ -21,7 +21,7 @@ void SceneNode::AddChild(SceneNode* s) {
 	s->parent = this;
 }
 
-void SceneNode::Draw(const OGLRenderer& r) {
+void SceneNode::Draw(OGLRenderer& r) {
 	if (mesh) {
 		mesh->Draw();
 	}

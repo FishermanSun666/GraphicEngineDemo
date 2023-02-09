@@ -143,10 +143,12 @@
     <ClCompile Include="FrameRole.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Node.cpp" />
+    <ClCompile Include="RenderNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FrameRole.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="RenderNode.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

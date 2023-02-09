@@ -2,7 +2,7 @@
 
 void Renderer::LoadNodes(void) {
 	root = new SceneNode();
-	LoadRobot();
+	LoadRole();
 	LoadTrees();
 	LoadCloud();
 }
@@ -21,8 +21,6 @@ void Renderer::LoadTrees() {
 			SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 		treeTexs.emplace_back(texID);
 	}
-	/*treeTexs.push_back(SOIL_load_OGL_texture(TEXTUREDIR"muddy.png",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0));*/
 	auto mapSize = heightMap->GetHeightmapSize();
 	float multi = 0;
 	for (int i = 0; i < TREE_NUM; i++) {
@@ -65,6 +63,7 @@ void Renderer::LoadCloud() {
 }
 
 void Renderer::BuildNodeLists(SceneNode* from) {
+	////Render only the meshes within the field of view
 	if (frameFrustum.InsideFrustum(*from)) {
 		Vector3 dir = from->GetWorldTransform().GetPositionVector() - camera->GetPosition();
 		from->SetCameraDistance(Vector3::Dot(dir, dir));
@@ -100,13 +99,7 @@ void Renderer::DrawNodes() {
 
 void Renderer::DrawNode(SceneNode* n) {
 	if (n->GetMesh()) {
-		auto texture = n->GetTexture();
-		if (0 == texture) {
-			DrawTree(n);
-		}
-		else {
-			DrawCloud(n);
-		}
+		n->Draw(*this);
 	}
 }
 
@@ -145,16 +138,4 @@ void Renderer::DrawCloud(SceneNode* n) {
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, CloudTex);
 	n->Draw(*this);
-}
-
-void Renderer::LoadRobot() {
-	robotMesh = Mesh::LoadFromMeshFile("offsetCubeY.msh");
-	auto robot = new CubeRobot(robotMesh);
-	auto mapSize = heightMap->GetHeightmapSize();
-	float nx = 1000 ;
-	float nz = 1000;
-	robot->SetTransform(Matrix4::Translation(Vector3(nx, heightMap->GetHeight(nx, nz), nz)));
-	robot->SetModelScale(Vector3(100.0f, 100.0f, 100.0f));
-	robot->SetBoundingRadius(2000.0f);
-	root->AddChild(robot);
 }

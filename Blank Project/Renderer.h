@@ -63,11 +63,8 @@ protected:
 	void LoadCloud();
 	void DrawCloud(SceneNode* n);
 
-	void LoadRobot();
-
 	void DrawRole();
 	void LoadRole();
-	void UpdateRoleFrame(float dt);
 
 	Shader* lightShader;
 	Shader* reflectShader;
@@ -75,11 +72,10 @@ protected:
 	Shader* sceneShader;
 
 	HeightMap* heightMap;
-	Mesh* quad;
-	Mesh* roleMesh;
+	Mesh* baseMesh;
+	Mesh* mesh;
 	Mesh* treeMesh;
 	Mesh* cloudMesh;
-	Mesh* robotMesh;
 
 	Light* light;
 	Camera* camera;
@@ -90,17 +86,10 @@ protected:
 	GLuint earthBump;
 	GLuint muddyTex;
 	GLuint CloudTex;
+	//tree
 	vector<GLuint> treeTexs;
-
-	MeshAnimation* anim;
-	MeshMaterial* material;
 	MeshMaterial* treeMaterial;
 	vector<GLuint> matTextures;
-    //role
-	Vector3 rolePosition;
-	int roleDir = -1;
-	int currentFrame;
-	float frameTime;
 	//water
 	float waterRotate;
 	float waterCycle;

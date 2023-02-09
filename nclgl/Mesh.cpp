@@ -48,7 +48,7 @@ void Mesh::Draw()	{
 		glDrawElements(type, numIndices, GL_UNSIGNED_INT, 0);
 	}
 	else{
-		glDrawArrays(type, 0, numVertices);	////param1: 基元类型; param2: 起始顶点; param3: 处理顶点数量
+		glDrawArrays(type, 0, numVertices);
 	}
 	glBindVertexArray(0);	
 }
@@ -71,9 +71,9 @@ void Mesh::DrawSubMesh(int i) {
 }
 
 void UploadAttribute(GLuint* id, int numElements, int dataSize, int attribSize, int attribID, void* pointer, const string&debugName) {
-	glGenBuffers(1, id);	////生成新的VBO
-	glBindBuffer(GL_ARRAY_BUFFER, *id);	////我们的Mesh的VAO绑定到OpenGL状态机上
-	glBufferData(GL_ARRAY_BUFFER, numElements * dataSize, pointer, GL_STATIC_DRAW);	////将数据复制到图形内存中; param2: 告诉OpenGL要从param3拷贝多少数据; param 3: 我们实际顶点属性数据的C++数据数组; param4: 这种 "标识"可以让驱动程序对数据的上传方式进行*优化(optimisation)*，但不会对数据的使用方式施加任何限制
+	glGenBuffers(1, id);
+	glBindBuffer(GL_ARRAY_BUFFER, *id);
+	glBufferData(GL_ARRAY_BUFFER, numElements * dataSize, pointer, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(attribID, attribSize, GL_FLOAT, GL_FALSE, 0, 0);	////将这个新创建的缓冲区的信息填充到VAO中; param1: 顶点属性槽0; param2: 每个顶点有多少浮点成员变量; param3&param4: 如果我们的缓冲区包含多个属性，最后两个参数将被设置为适当的跨度和指针值
 	glEnableVertexAttribArray(attribID);	////启用数据，OpenGL尝试从绑定的缓冲区中为Vertex Shader提供数据, 其格式是先前由glVertexAttribPointer函数的param4设置的

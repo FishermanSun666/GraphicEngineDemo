@@ -15,17 +15,11 @@ protected:
 	int nodeType;
 	Shader* shader;
 public:
-	RenderNode();
-	RenderNode(int type, Shader* shader) {
+	RenderNode(int type, Shader* shader) : SceneNode() {
 		nodeType = type;
-		shader = shader;
+		this->shader = shader;
 	}
-	~RenderNode() {
-		if (shader) {
-			delete shader;
-			shader = nullptr;
-		}
-	}
+	~RenderNode() {}
 
 	int GetType() { return nodeType; }
 	Shader* GetShader() { return shader; }

@@ -57,9 +57,6 @@ Renderer::~Renderer(void) {
 	if (camera) {
 		delete camera;
 	}
-	if (heightMap) {
-		delete heightMap;
-	}
 	if (baseMesh) {
 		delete baseMesh;
 	}
@@ -102,13 +99,10 @@ void Renderer::RenderScene() {
 	DrawSkybox();
 	DrawHeightmap();
 	DrawWater();
-
+	//node tree
 	BuildNodeLists(root);
 	SortNodeList();
-	UpdateShaderMatrices();
-
 	DrawNodes();
-	ClearNodeLists();
 }
 
 void Renderer::DrawSkybox() {

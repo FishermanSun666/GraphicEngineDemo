@@ -1,6 +1,6 @@
 #pragma once
-#include "FrameRole.h"
-
+#include "RoleNode.h"
+#include "TreeNode.h"
 #include "../nclgl/OGLRenderer.h"
 #include "../nclgl/SceneNode.h"
 #include "../nclgl/Frustum.h"
@@ -12,24 +12,9 @@
 #include"../nclgl/MeshMaterial.h"
 #include"../nclgl/CubeRobot.h"
 
-const enum Tree {
-	TREE_NUM = 20,
-	TREE_MIN_SPACE = 100,
-	TREE_MIN = 50,
-	TREE_RANGE = 30,
-};
-
-const enum Role {
-	ROLE_MOVE_SPEED = 40,
-};
-
-const enum Cloud {
-	CLOUD_NUM = 100
-};
-
-const float ROLE_POS_X = 0.40f;
-const float ROLE_POS_Z = 0.45f;
-const float ROLE_MOVE_MAX = 0.70f;
+//const enum Cloud {
+//	CLOUD_NUM = 100
+//};
 
 class Camera;
 class Shader;
@@ -49,22 +34,18 @@ protected:
 	void DrawHeightmap();
 	void DrawWater();
 	void DrawSkybox();
-
+	//node tree
 	void LoadNodes();
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeList();
 	void ClearNodeLists();
 	void DrawNodes();
 	void DrawNode(SceneNode* n);
-
-	void LoadTrees();
-	void DrawTree(SceneNode* n);
-
-	void LoadCloud();
-	void DrawCloud(SceneNode* n);
-
-	void DrawRole();
 	void LoadRole();
+	void LoadTrees();
+	void CreateTrees(Mesh* mesh, vector<GLuint> textures);
+	/*void LoadCloud();
+	void DrawCloud(SceneNode* n);*/
 
 	Shader* lightShader;
 	Shader* reflectShader;
@@ -73,8 +54,7 @@ protected:
 
 	HeightMap* heightMap;
 	Mesh* baseMesh;
-	Mesh* mesh;
-	Mesh* treeMesh;
+	Mesh* mesh;	
 	Mesh* cloudMesh;
 
 	Light* light;
@@ -86,15 +66,10 @@ protected:
 	GLuint earthBump;
 	GLuint muddyTex;
 	GLuint CloudTex;
-	//tree
-	vector<GLuint> treeTexs;
-	MeshMaterial* treeMaterial;
-	vector<GLuint> matTextures;
+	Frustum frameFrustum;
 	//water
 	float waterRotate;
 	float waterCycle;
-
-	Frustum frameFrustum;
 	//node list
 	SceneNode* root;
 	vector<SceneNode*> transparentNodeList;

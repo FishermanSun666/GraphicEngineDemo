@@ -1,24 +1,17 @@
-#include "FrameRole.h"
-#include "../nclgl/OGLRenderer.h"
+#include "RoleNode.h"
 
-RoleNode::RoleNode(Shader* shader, HeightMap* map) : RenderNode(ROLE_NODE , shader) {
-	//load
-	mesh = Mesh::LoadFromMeshFile("Role_T.msh");
-	anim = new MeshAnimation("Role_T.anm");
-	material = new MeshMaterial("Role_T.mat");
-	for (int i = 0; i < mesh->GetSubMeshCount(); ++i) {
-		const MeshMaterialEntry* matEntry =
-			material->GetMaterialForLayer(i);
-		const string* filename = nullptr;
-		matEntry->GetEntry("Diffuse", &filename);
-		string path = TEXTUREDIR + *filename;
-		GLuint texID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_AUTO,
-			SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-		matTextures.emplace_back(texID);
+RoleNode::RoleNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* material, vector<GLuint> matTextures, HeightMap* map, Shader* shader) : RenderNode(ROLE_NODE , shader) {
+	if (!anim || !material  || !shader || !map || 0 == matTextures.size()) {
+		return;
 	}
 	//init
 	currentFrame = 0;
 	frameTime = 0.0f;
+	this->mesh = mesh;
+	this->anim = anim;
+	this->material = material;
+	this->matTextures = matTextures;
+	heightMap = map;
 	//Keeping the role on the ground
 	float px = ROLE_POS_X * heightMap->GetHeightmapSize().x;
 	float pz = ROLE_POS_Z* heightMap->GetHeightmapSize().z;
@@ -30,11 +23,11 @@ void RoleNode::Update(float dt) {
 	//role turn
 	Vector3 position = worldTransform.GetPositionVector();
 	if (position.z >= heightMap->GetHeightmapSize().z * ROLE_MOVE_MAX || position.z <= heightMap->GetHeightmapSize().z * ROLE_POS_Z - 1) {
-		worldTransform.Rotation(180.0f, Vector3(0.0f, 1.0f, 0.0f));
+		worldTransform = worldTransform.Rotation(180.0f, Vector3(0.0f, 1.0f, 0.0f));
 		direction *= -1;
 	}
 	//move
-	position.z -= ROLE_MOVE_SPEED * dt * direction;
+	position.z += ROLE_MOVE_SPEED * dt * direction;
 	position.y = heightMap->GetHeight(position.x, position.z);
 	worldTransform.SetPositionVector(position);
 	//role frame

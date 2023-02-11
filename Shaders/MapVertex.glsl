@@ -5,12 +5,18 @@ uniform mat4 projMatrix;
 uniform mat4 shadowMatrix;
 
 uniform vec3 lightPos;
+uniform bool animate;
+uniform bool transparent;
 
 in vec3 position;
 in vec4 colour;
 in vec3 normal;
 in vec4 tangent;
 in vec2 texCoord;
+in vec4 jointWeights;
+in ivec4 jointIndices;
+
+uniform mat4 joints[128];
 
 out Vertex {
 	vec4 colour;
@@ -24,20 +30,32 @@ out Vertex {
 	float height;
 } OUT;
 void main(void) {
-	OUT.colour = colour;
-	OUT.texCoord = texCoord;
-	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
-	vec3 wNormal = normalize(normalMatrix * normalize(normal));
-	vec3 wTangent = normalize(normalMatrix * normalize(tangent.xyz));
+	vec3 finalPos = position;
+	if (animate) {
+		//animate mesh need calculate position
+		vec4 localPos = vec4(position, 1.0f);
+		vec4 skelPos = vec4(0 ,0 ,0 ,0);
 
-	OUT.normal = wNormal;
-	OUT.tangent = wTangent;
-	OUT.binormal = cross(wTangent, wNormal) * tangent.w;
+		for (int i = 0; i < 4; ++ i) {
+			int jointIndex = jointIndices[i];
+			float jointWeight = jointWeights[i];
+			skelPos += joints[jointIndex] * localPos * jointWeight;
+		}
+		finalPos = skelPos.xyz;
+	}
 
-	vec4 worldPos = (modelMatrix * vec4 (position, 1));
+	vec4 worldPos = (modelMatrix * vec4 (finalPos, 1));
 	OUT.worldPos = worldPos.xyz;
 	gl_Position = (projMatrix * viewMatrix) * worldPos;
-	OUT.height = position.y;
+	OUT.height = finalPos.y;
+	OUT.colour = colour;
+	OUT.texCoord = texCoord;
+	//light
+	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
+	OUT.normal = normalize(normalMatrix * normalize(normal));
+	OUT.tangent = normalize(normalMatrix * normalize(tangent.xyz));
+	OUT.binormal = cross(OUT.normal, OUT.tangent) * tangent.w;
+	//shadow
 	vec3 viewDir = normalize(lightPos - worldPos.xyz);
 	vec4 pushVal = vec4(OUT.normal , 0) * dot(viewDir, OUT.normal);
 	OUT.shadowProj = shadowMatrix * (worldPos + pushVal);

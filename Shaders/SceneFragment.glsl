@@ -1,5 +1,5 @@
 #version 330 core
-uniform sampler2D textrue;
+uniform sampler2D diffuseTex;
 //mesh type
 uniform bool animate;
 uniform bool transparent;
@@ -19,12 +19,11 @@ in Vertex {
 out vec4 fragColour;
 void main(void) {
 	fragColour = IN.colour;
-	vec4 diffuse = texture(textrue, IN.texCoord);
+	vec4 diffuse = texture(diffuseTex, IN.texCoord);
 	if (transparent) {
 		fragColour *= diffuse;
 	} else {
 		//adding light to the entity's mesh.
-		//fragColour = diffuse;
 		vec3 incident = normalize(lightPos - IN.worldPos);
 		vec3 viewDir = normalize(cameraPos - IN.worldPos);
 		vec3 halfDir = normalize(incident + viewDir);

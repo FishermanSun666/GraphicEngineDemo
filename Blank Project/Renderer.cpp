@@ -112,15 +112,18 @@ void Renderer::UpdateScene(float dt) {
 void Renderer::RenderScene() {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	DrawSkybox();
-	DrawHeightmap();
 	DrawWater();
-	
+
 	//node tree
 	BuildNodeLists(root);
 	SortNodeList();
+	DrawNodeShadows();
+	DrawHeightmap();
 	DrawNodes();
-	//DrawNodeShadows();
+    
 	ClearNodeLists();
+
+	
 }
 
 void Renderer::DrawSkybox() {
@@ -133,6 +136,12 @@ void Renderer::DrawSkybox() {
 
 void Renderer::DrawHeightmap() {
 	BindShader(mapShader);
+	SetShaderLight(*light);
+	modelMatrix.ToIdentity();
+	textureMatrix.ToIdentity();
+	viewMatrix = camera->BuildViewMatrix();
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
+
 	glUniform3fv(glGetUniformLocation(mapShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
 
 	glUniform1i(glGetUniformLocation(mapShader->GetProgram(), "diffuseTex"), 0);
@@ -147,12 +156,12 @@ void Renderer::DrawHeightmap() {
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, muddyTex);
 
-	modelMatrix.ToIdentity();
-	textureMatrix.ToIdentity();
+	glUniform1i(glGetUniformLocation(sceneShader->GetProgram(),"shadowTex"), 3);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, muddyTex);
+
 
 	UpdateShaderMatrices();
-	SetShaderLight(*light);
-
 	heightMap->Draw();
 }
 
@@ -184,7 +193,7 @@ void Renderer::DrawWater() {
 
 
 void Renderer::DrawNodes() {
-	BindShader(sceneShader);
+	//BindShader(mapShader);
 	UpdateShaderMatrices();
 	//set light;
 	glUniform3fv(glGetUniformLocation(mapShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
@@ -201,20 +210,22 @@ void Renderer::DrawNodes() {
 
 void Renderer::DrawNodeShadows() {
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-	//glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	BindShader(shadowShader);
 	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3(0, 0, 0));
-	projMatrix = Matrix4::Perspective(1, 100, 1, 45);
-	shadowMatrix = projMatrix * viewMatrix; // used later
+	projMatrix = Matrix4::Perspective(1, 25, 1, 90);
+	shadowMatrix = projMatrix * viewMatrix;
+
 	for (const auto& i : nodeList) {
 		i->DrawShadow(*this);
 	}
 	for (const auto& i : transparentNodeList) {
 		i->DrawShadow(*this);
 	}
+
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glViewport(0, 0, width, height);
 

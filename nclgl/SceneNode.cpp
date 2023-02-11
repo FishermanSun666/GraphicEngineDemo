@@ -32,7 +32,7 @@ void SceneNode::Draw(OGLRenderer& r) {
 
 void SceneNode::DrawShadow(OGLRenderer& r) {
 	if (mesh) {
-		r.UpdateModelMatrix(worldTransform);
+		r.UpdateModelMatrix(worldTransform * Matrix4::Scale(modelScale));
 		r.UpdateShaderMatrices();
 		mesh->Draw();
 	}

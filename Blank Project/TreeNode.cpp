@@ -8,7 +8,7 @@ void MaterialNode::Draw(OGLRenderer& r) {
 	if (!shader) {
 		return;
 	}
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "texture"), 0);
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "animate"), false);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "transparent"), false);
 	glUniform4fv(glGetUniformLocation(shader->GetProgram(), "nodeColour"), 1, (float*)&this->GetColour());

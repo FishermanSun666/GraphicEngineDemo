@@ -39,7 +39,7 @@ void RoleNode::Draw(OGLRenderer& r) {
 	if (!shader) {
 		return;
 	}
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "texture"), 0);
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "animate"), true);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "transparent"), false);
 	r.UpdateModelMatrix(worldTransform * Matrix4::Scale(modelScale));

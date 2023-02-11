@@ -6,35 +6,30 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	heightMap = new HeightMap(TEXTUREDIR"noise.png");
 	Vector3 heightmapSize = heightMap->GetHeightmapSize();
 	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.65f, 3.0f, 0.65f));
-	light = new Light(heightmapSize * Vector3(0.5f, 1.5f, 0.5f),
-		Vector4(2.2, 2.275, 2.15, 1), heightmapSize.x);
+	light = new Light(heightmapSize * Vector3(0.5f, 1.5f, 0.5f), Vector4(1.24f, 1.24f, 1.275f, 1), heightmapSize.x);
 	//load texture
-	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"water.TGA",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	earthTex = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.JPG",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	earthBump = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	muddyTex = SOIL_load_OGL_texture(TEXTUREDIR"muddy.png",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"water.TGA", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	earthTex = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	earthBump = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	muddyTex = SOIL_load_OGL_texture(TEXTUREDIR"muddy.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	cubeMap = SOIL_load_OGL_cubemap(
 		TEXTUREDIR"blizzard_rt.jpg", TEXTUREDIR"blizzard_lf.jpg",
 		TEXTUREDIR"blizzard_up.jpg", TEXTUREDIR"blizzard_dn.jpg",
 		TEXTUREDIR "blizzard_bk.jpg", TEXTUREDIR"blizzard_ft.jpg",
 		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
-	if (!earthTex || !earthBump || !cubeMap || !waterTex) {
+	if (!earthTex || !earthBump || !cubeMap || !muddyTex ||!waterTex) {
 		return;
 	}
 	SetTextureRepeating(earthTex, true);
 	SetTextureRepeating(earthBump, true);
 	SetTextureRepeating(waterTex, true);
 	
-	sceneShader = new Shader("SceneVertex.glsl", "coursework_texture_fragment.glsl");
+	sceneShader = new Shader("SceneVertex.glsl", "SceneFragment.glsl");
 	reflectShader = new Shader("reflectVertex.glsl", "reflectFragment.glsl");
 	skyboxShader = new Shader("skyboxVertex.glsl", "skyboxFragment.glsl");
-	lightShader = new Shader("PerPixelVertex.glsl", "PerPixelFragment.glsl");
+	mapShader = new Shader("MapVertex.glsl", "MapFragment.glsl");
 	
-	if (!reflectShader->LoadSuccess() || !skyboxShader->LoadSuccess()|| !lightShader->LoadSuccess() || !sceneShader->LoadSuccess()) {
+	if (!reflectShader->LoadSuccess() || !skyboxShader->LoadSuccess()|| !sceneShader->LoadSuccess() || !mapShader->LoadSuccess()){
 		return;
 	}
 	//node tree
@@ -66,8 +61,8 @@ Renderer::~Renderer(void) {
 	if (skyboxShader) {
 		delete skyboxShader;
 	}
-	if (lightShader) {
-		delete lightShader;
+	if (mapShader) {
+		delete mapShader;
 	}
 	if (light) {
 		delete light;
@@ -99,6 +94,7 @@ void Renderer::RenderScene() {
 	DrawSkybox();
 	DrawHeightmap();
 	DrawWater();
+	
 	//node tree
 	BuildNodeLists(root);
 	SortNodeList();
@@ -114,28 +110,26 @@ void Renderer::DrawSkybox() {
 }
 
 void Renderer::DrawHeightmap() {
-	BindShader(lightShader);
-	SetShaderLight(*light);
-	glUniform3fv(glGetUniformLocation(lightShader->GetProgram(),
-		"cameraPos"), 1, (float*)&camera->GetPosition());
+	BindShader(mapShader);
+	glUniform3fv(glGetUniformLocation(mapShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
 
-	glUniform1i(glGetUniformLocation(lightShader->GetProgram(),
-		"diffuseTex"), 0);
-	glUniform1i(glGetUniformLocation(lightShader->GetProgram(),
-		"diffuseTex1"), 2);
+	glUniform1i(glGetUniformLocation(mapShader->GetProgram(), "diffuseTex"), 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, earthTex);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, muddyTex);
 
-	glUniform1i(glGetUniformLocation(lightShader->GetProgram(), "bumpTex"), 1);
+	glUniform1i(glGetUniformLocation(mapShader->GetProgram(), "bumpTex"), 1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, earthBump);
+
+	glUniform1i(glGetUniformLocation(mapShader->GetProgram(), "muddyTex"), 2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, muddyTex);
 
 	modelMatrix.ToIdentity();
 	textureMatrix.ToIdentity();
 
 	UpdateShaderMatrices();
+	SetShaderLight(*light);
 
 	heightMap->Draw();
 }
@@ -154,7 +148,7 @@ void Renderer::DrawWater() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, waterTex);
 
-	glActiveTexture(GL_TEXTURE2);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 
 	Vector3 hSize = heightMap->GetHeightmapSize();
@@ -171,3 +165,160 @@ void Renderer::DrawWater() {
 	SetShaderLight(*light);
 	baseMesh->Draw();
 }
+
+void Renderer::DrawNode(SceneNode* n) {
+	if (n->GetMesh()) {
+		n->Draw(*this);
+	}
+}
+
+void Renderer::DrawNodes() {
+	BindShader(sceneShader);
+	UpdateShaderMatrices();
+	//set light;
+	glUniform3fv(glGetUniformLocation(mapShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
+	SetShaderLight(*light);
+	for (const auto& i : nodeList) {
+		DrawNode(i);
+	}
+	for (const auto& i : transparentNodeList) {
+		DrawNode(i);
+	}
+	ClearNodeLists();
+}
+
+void Renderer::LoadNodes(void) {
+	root = new SceneNode();
+	LoadAnimatedNodes();
+	LoadMaterialNodes();
+	//LoadCloud();
+}
+
+void Renderer::LoadAnimatedNodes() {
+	Mesh* roleMesh = Mesh::LoadFromMeshFile("Role_T.msh");
+	auto anim = new MeshAnimation("Role_T.anm");
+	auto material = new MeshMaterial("Role_T.mat");
+	vector<GLuint> matTextures;
+	//load sub mesh
+	for (int i = 0; i < roleMesh->GetSubMeshCount(); ++i) {
+		const MeshMaterialEntry* matEntry = material->GetMaterialForLayer(i);
+		const string* filename = nullptr;
+		matEntry->GetEntry("Diffuse", &filename);
+		string path = TEXTUREDIR + *filename;
+		GLuint texID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+		matTextures.emplace_back(texID);
+	}
+	AnimatedNode* role = new AnimatedNode(roleMesh, anim, material, matTextures, heightMap);
+	if (role) {
+		root->AddChild(role);
+	}
+}
+
+void Renderer::LoadMaterialNodes() {
+	Mesh* treeMesh = Mesh::LoadFromMeshFile("Big_Tree.msh");
+	MeshMaterial* material = new MeshMaterial("Big_Tree.mat");
+	if (!treeMesh || !material) {
+		return;
+	}
+	//load multi texture
+	vector<GLuint> textures;
+	for (int i = 0; i < treeMesh->GetSubMeshCount(); ++i) {
+		const MeshMaterialEntry* matEntry = material->GetMaterialForLayer(i);
+		const string* filename = nullptr;
+		matEntry->GetEntry("Diffuse", &filename);
+		string path = TEXTUREDIR + *filename;
+		GLuint texID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+		textures.emplace_back(texID);
+	}
+	//create tree
+	CreateTrees(treeMesh, textures);
+}
+
+//Create trees of a certain density depending on the size of the map
+//@param mesh - tree mesh
+//@param textures - tree's multiple texture
+void Renderer::CreateTrees(Mesh* mesh, vector<GLuint> textures) {
+	if (!root || !heightMap ) {
+		return;
+	}
+	Vector3 mapSize = heightMap->GetHeightmapSize();
+	float size = 0;
+	for (int i = 0; i < TREE_NUM; i++) {
+		MaterialNode* s = new MaterialNode(mesh, textures);
+		size = rand() % (TREE_RANGE);
+		float nSize = size + TREE_MIN;
+		float nx = (rand() + TREE_MIN_SPACE) % (int)mapSize.x * 0.7f;
+		float nz = (rand() + TREE_MIN_SPACE) % (int)mapSize.z;
+		s->SetTransform(Matrix4::Translation(Vector3(nx, heightMap->GetHeight(nx, nz), nz)));
+		s->SetModelScale(Vector3(nSize, nSize, nSize));
+		s->SetBoundingRadius(20000.0f);
+		root->AddChild(s);
+	}
+}
+
+void Renderer::BuildNodeLists(SceneNode* from) {
+	////Render only the meshes within the field of view
+	if (frameFrustum.InsideFrustum(*from)) {
+		Vector3 dir = from->GetWorldTransform().GetPositionVector() - camera->GetPosition();
+		from->SetCameraDistance(Vector3::Dot(dir, dir));
+		if (from->GetColour().w < 1.0f) {
+			transparentNodeList.push_back(from);
+		}
+		else {
+			nodeList.push_back(from);
+		}
+	}
+
+	for (auto i = from->GetChildIteratorStart(); i != from->GetChildIteratorEnd(); ++i) {
+		BuildNodeLists((*i));
+	}
+}
+
+void Renderer::SortNodeList() {
+	std::sort(transparentNodeList.rbegin(), transparentNodeList.rend(),
+		SceneNode::CompareByCameraDistance);
+	std::sort(nodeList.begin(), nodeList.end(),
+		SceneNode::CompareByCameraDistance);
+}
+
+void Renderer::ClearNodeLists() {
+	transparentNodeList.clear();
+	nodeList.clear();
+}
+
+//void Renderer::LoadCloud() {
+//	cloudMesh = Mesh::LoadFromMeshFile("Sphere.msh");
+//	auto mapSize = heightMap->GetHeightmapSize();
+//	float hCloud = mapSize.z * 0.9f;
+//	float sCloud = 100.0f;
+//	CloudTex = SOIL_load_OGL_texture(TEXTUREDIR"ground.png",
+//		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0);
+//	//SetTextureRepeating(CloudTex, true);
+//
+//	for (int i = 0; i < CLOUD_NUM; i++) {
+//		SceneNode* s = new SceneNode();
+//		float nx = rand() % (int)mapSize.x;
+//		float nz = rand() % (int)mapSize.z;
+//		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.3f));
+//		s->SetTransform(Matrix4::Translation(Vector3(nx, hCloud, nz)));
+//		s->SetModelScale(Vector3(sCloud + (float)(rand() % (int)100.0f), sCloud, sCloud + (float)(rand() % (int)100.0f)));
+//		s->SetBoundingRadius(20000.0f);
+//		s->SetTexture(CloudTex);
+//		s->SetMesh(cloudMesh);
+//		root->AddChild(s);
+//	}
+//}
+// 
+//void Renderer::DrawCloud(SceneNode* n) {
+//	modelMatrix = n->GetWorldTransform() * Matrix4::Scale(n->GetModelScale());
+//	UpdateShaderMatrices();
+//	glUniform4fv(glGetUniformLocation(sceneShader->GetProgram(),
+//		"nodeColour"), 1, (float*)&n->GetColour());
+//	glUniform1i(glGetUniformLocation(sceneShader->GetProgram(),
+//		"cloudTex"), 2);
+//	glUniform1i(glGetUniformLocation(sceneShader->GetProgram(),
+//		"shadeType"), 2);
+//	glActiveTexture(GL_TEXTURE2);
+//	glBindTexture(GL_TEXTURE_2D, CloudTex);
+//	n->Draw(*this);
+//}

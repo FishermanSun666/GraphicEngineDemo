@@ -41,13 +41,13 @@ protected:
 	void ClearNodeLists();
 	void DrawNodes();
 	void DrawNode(SceneNode* n);
-	void LoadRole();
-	void LoadTrees();
+	void LoadAnimatedNodes();
+	void LoadMaterialNodes();
 	void CreateTrees(Mesh* mesh, vector<GLuint> textures);
 	/*void LoadCloud();
 	void DrawCloud(SceneNode* n);*/
 
-	Shader* lightShader;
+	Shader* mapShader;
 	Shader* reflectShader;
 	Shader* skyboxShader;
 	Shader* sceneShader;

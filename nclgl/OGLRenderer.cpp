@@ -221,6 +221,10 @@ void OGLRenderer::UpdateShaderMatrices() {
 			glGetUniformLocation(currentShader->GetProgram(),
 				"textureMatrix"), 1, false, textureMatrix.values);
 
+		glUniformMatrix4fv(
+			glGetUniformLocation(currentShader->GetProgram(),
+				"shadowMatrix"), 1, false, shadowMatrix.values);
+
 	}
 }
 

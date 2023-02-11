@@ -6,9 +6,9 @@ using namespace std;
 HeightMap::HeightMap(const std::string& name) {
 	int iWidth, iHeight, iChans;
 	unsigned char* data = SOIL_load_image(name.c_str(),
-		&iWidth, &iHeight, &iChans, 1); //从纹理中加载，最后一个参数中的 "1 "将强制SOIL给我们提供单通道格式的数据
+		&iWidth, &iHeight, &iChans, 1); //Load from texture, the "1" in the last parameter will force SOIL to give us the data in single channel format
 	if (!data) {
-		std::cout << "Heightmap can't load file!\n";
+		std::cout << "height map can't load file!\n";
 		return;
 	}
 	numVertices = iWidth * iHeight;
@@ -22,13 +22,13 @@ HeightMap::HeightMap(const std::string& name) {
 		for (int x = 0; x < iWidth; ++x) {
 			int offset = (z * iWidth) + x;
 			auto vertex = Vector3(x, data[offset] * 1.8, z) * g_vertexScale;
-			vertices[offset] = vertex;	//2维数组转变为1维
+			vertices[offset] = vertex;	//Transformation of 2d arrays to 1d
 			textureCoords[offset] = Vector2(x, z) * textureScale;
 			//y index
 			heights[vertex.x][vertex.z] = vertex.y;
 		}
 	}
-	SOIL_free_image_data(data); //删除原始图层数据,返回的是一个单一的内存分配
+	SOIL_free_image_data(data); //Deletes the original layer data, returning a single memory allocation
 	int i = 0;
 
 	for (int z = 0; z < iHeight - 1; ++z) {

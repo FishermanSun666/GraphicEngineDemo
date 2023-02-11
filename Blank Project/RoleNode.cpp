@@ -1,13 +1,12 @@
 #include "RoleNode.h"
 
-RoleNode::RoleNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* material, vector<GLuint> matTextures, HeightMap* map, Shader* shader) : RenderNode(ROLE_NODE , shader) {
-	if (!anim || !material  || !shader || !map || 0 == matTextures.size()) {
+AnimatedNode::AnimatedNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* material, vector<GLuint> matTextures, HeightMap* map) : SceneNode(mesh) {
+	if (!anim || !material || !map || 0 == matTextures.size()) {
 		return;
 	}
 	//init
 	currentFrame = 0;
 	frameTime = 0.0f;
-	this->mesh = mesh;
 	this->anim = anim;
 	this->material = material;
 	this->matTextures = matTextures;
@@ -19,11 +18,11 @@ RoleNode::RoleNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* material, vect
 	modelScale = Vector3(ROLE_SCALE, ROLE_SCALE, ROLE_SCALE);
 }
 
-void RoleNode::Update(float dt) {
+void AnimatedNode::Update(float dt) {
 	//role turn
 	Vector3 position = worldTransform.GetPositionVector();
-	if (position.z >= heightMap->GetHeightmapSize().z * ROLE_MOVE_MAX || position.z <= heightMap->GetHeightmapSize().z * ROLE_POS_Z - 1) {
-		worldTransform = worldTransform.Rotation(180.0f, Vector3(0.0f, 1.0f, 0.0f));
+	if (position.z > heightMap->GetHeightmapSize().z * ROLE_MOVE_MAX || position.z < heightMap->GetHeightmapSize().z * ROLE_POS_Z - 1) {
+		worldTransform = worldTransform.Rotation(90.0f + 90.0f*direction, Vector3(0.0f, 1.0f, 0.0f));
 		direction *= -1;
 	}
 	//move
@@ -38,11 +37,14 @@ void RoleNode::Update(float dt) {
 	}
 }
 
-void RoleNode::Draw(OGLRenderer& r) {
-	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"roleTex"), 0);
-	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"shadeType"), 0);
+void AnimatedNode::Draw(OGLRenderer& r) {
+	auto shader = r.GetCurrentShader();
+	if (!shader) {
+		return;
+	}
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "texture"), 0);
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "animate"), true);
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "transparent"), false);
 	r.UpdateModelMatrix(worldTransform * Matrix4::Scale(modelScale));
 	r.UpdateShaderMatrices();
 	//join frame
@@ -53,8 +55,7 @@ void RoleNode::Draw(OGLRenderer& r) {
 		frameMatrices.emplace_back(frameData[i] * invBindPose[i]);
 	}
 	int j = glGetUniformLocation(shader->GetProgram(), "joints");
-	glUniformMatrix4fv(j, frameMatrices.size(), false,
-		(float*)frameMatrices.data());
+	glUniformMatrix4fv(j, frameMatrices.size(), false, (float*)frameMatrices.data());
 	for (int i = 0; i < mesh->GetSubMeshCount(); ++i) {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, matTextures[i]);

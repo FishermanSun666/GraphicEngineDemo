@@ -1,6 +1,7 @@
 #version 330 core
 
 uniform sampler2D diffuseTex;
+uniform sampler2D bumpTex;
 uniform sampler2D diffuseTex1;
 
 uniform vec3 cameraPos;
@@ -12,6 +13,8 @@ in Vertex {
 	vec3 colour;
 	vec2 texCoord;
 	vec3 normal;
+	vec3 tangent;
+	vec3 binormal;
 	vec3 worldPos;
 
 	float height;
@@ -48,7 +51,7 @@ void main(void) {
 		specFactor = pow(specFactor, 60.0);
 		vec3 surface = (diffuse.rgb * lightColour.rgb);
 		fragColour.rgb = surface * lambert * attenuation;
-		fragColour.rgb += (lightColour.rgb * specFactor) * attenuation*0.8;
+		fragColour.rgb += (lightColour.rgb * specFactor) * attenuation * 0.8;
 		fragColour.rgb += surface * 0.1f;
 		fragColour.a = diffuse.a;
 	}

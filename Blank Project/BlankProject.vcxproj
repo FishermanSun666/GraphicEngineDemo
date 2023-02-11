@@ -142,7 +142,6 @@
     <ClCompile Include="BlankProject.cpp" />
     <ClCompile Include="RoleNode.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="Node.cpp" />
     <ClCompile Include="TreeNode.cpp" />
   </ItemGroup>
   <ItemGroup>

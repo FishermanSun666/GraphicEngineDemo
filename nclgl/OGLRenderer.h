@@ -51,14 +51,15 @@ public:
 	OGLRenderer(Window &parent);
 	virtual ~OGLRenderer(void);
 
+	Shader* GetCurrentShader() { return currentShader; }
+
 	virtual void	RenderScene()		= 0;
 	virtual void	UpdateScene(float msec);
+	void			UpdateModelMatrix(Matrix4 matrix) { modelMatrix = matrix; }
+	void			UpdateShaderMatrices();
 	void			SwapBuffers();
 
 	bool			HasInitialised() const;
-
-	void			UpdateModelMatrix(Matrix4 matrix) { modelMatrix = matrix; }
-	void			UpdateShaderMatrices();
 protected:
 	void SetShaderLight(const Light& l);
 	virtual void	Resize(int x, int y);

@@ -1,5 +1,5 @@
 #pragma once
-#include "RenderNode.h"
+#include "../nclgl/SceneNode.h"
 #include "../nclgl/Shader.h"
 #include "../nclgl/MeshMaterial.h"
 
@@ -10,13 +10,13 @@ const enum Tree {
 	TREE_RANGE = 30,
 };
 
-class TreeNode : public RenderNode
+class MaterialNode : public SceneNode
 {
 public:
-	TreeNode(vector<GLuint> textures, Shader* shader) : RenderNode(TREE_NODE, shader) {
+	MaterialNode(Mesh* mesh, vector<GLuint> textures) : SceneNode(mesh){
 		this->textures = textures;
 	}
-	~TreeNode() {}
+	~MaterialNode() {}
 	void Draw(OGLRenderer& r) override;
 private:
 	vector<GLuint> textures;

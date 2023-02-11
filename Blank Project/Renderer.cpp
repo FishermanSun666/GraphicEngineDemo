@@ -28,15 +28,32 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	reflectShader = new Shader("reflectVertex.glsl", "reflectFragment.glsl");
 	skyboxShader = new Shader("skyboxVertex.glsl", "skyboxFragment.glsl");
 	mapShader = new Shader("MapVertex.glsl", "MapFragment.glsl");
+	shadowShader = new Shader("ShadowVertex.glsl", "ShadowFragment.glsl");
 	
-	if (!reflectShader->LoadSuccess() || !skyboxShader->LoadSuccess()|| !sceneShader->LoadSuccess() || !mapShader->LoadSuccess()){
+	if (!reflectShader->LoadSuccess() || !skyboxShader->LoadSuccess()|| !sceneShader->LoadSuccess() || !mapShader->LoadSuccess() || !shadowShader->LoadSuccess()){
 		return;
 	}
 	//node tree
-	LoadNodes();
+	CreateNodes();
 
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 	UpdateShaderMatrices();
+	//shadow
+	glGenTextures(1, &shadowTex);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glGenFramebuffers(1, &shadowFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+		GL_TEXTURE_2D, shadowTex, 0);
+	glDrawBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
@@ -49,6 +66,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 }
 
 Renderer::~Renderer(void) {
+	glDeleteTextures(1, &shadowTex);
+	glDeleteFramebuffers(1, &shadowFBO);
+
 	if (camera) {
 		delete camera;
 	}
@@ -99,6 +119,8 @@ void Renderer::RenderScene() {
 	BuildNodeLists(root);
 	SortNodeList();
 	DrawNodes();
+	//DrawNodeShadows();
+	ClearNodeLists();
 }
 
 void Renderer::DrawSkybox() {
@@ -147,30 +169,19 @@ void Renderer::DrawWater() {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, waterTex);
-
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 
 	Vector3 hSize = heightMap->GetHeightmapSize();
 
-	modelMatrix = Matrix4::Translation(hSize * 0.5f) *
-		Matrix4::Scale(hSize * 0.5f) *
-		Matrix4::Rotation(90, Vector3(1, 0, 0));
-
-	textureMatrix = Matrix4::Translation(Vector3(waterCycle, 0.0f, waterCycle)) *
-		Matrix4::Scale(Vector3(10, 10, 10)) *
-		Matrix4::Rotation(waterRotate, Vector3(0, 0, 1));
+	modelMatrix = Matrix4::Translation(hSize * 0.5f) * Matrix4::Scale(hSize * 0.5f) * Matrix4::Rotation(90, Vector3(1, 0, 0));
+	textureMatrix = Matrix4::Translation(Vector3(waterCycle, 0.0f, waterCycle)) * Matrix4::Scale(Vector3(10, 10, 10)) * Matrix4::Rotation(waterRotate, Vector3(0, 0, 1));
 
 	UpdateShaderMatrices();
 	SetShaderLight(*light);
 	baseMesh->Draw();
 }
 
-void Renderer::DrawNode(SceneNode* n) {
-	if (n->GetMesh()) {
-		n->Draw(*this);
-	}
-}
 
 void Renderer::DrawNodes() {
 	BindShader(sceneShader);
@@ -179,22 +190,50 @@ void Renderer::DrawNodes() {
 	glUniform3fv(glGetUniformLocation(mapShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
 	SetShaderLight(*light);
 	for (const auto& i : nodeList) {
-		DrawNode(i);
+		i->Draw(*this);
 	}
 	for (const auto& i : transparentNodeList) {
-		DrawNode(i);
+		i->Draw(*this);
 	}
-	ClearNodeLists();
 }
 
-void Renderer::LoadNodes(void) {
+
+
+void Renderer::DrawNodeShadows() {
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+	BindShader(shadowShader);
+	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3(0, 0, 0));
+	projMatrix = Matrix4::Perspective(1, 100, 1, 45);
+	shadowMatrix = projMatrix * viewMatrix; // used later
+	for (const auto& i : nodeList) {
+		i->DrawShadow(*this);
+	}
+	for (const auto& i : transparentNodeList) {
+		i->DrawShadow(*this);
+	}
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glViewport(0, 0, width, height);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::CreateNodes(void) {
 	root = new SceneNode();
-	LoadAnimatedNodes();
-	LoadMaterialNodes();
+	CreateAnimatedNodes();
+	CreateMaterialNodes();
 	//LoadCloud();
 }
 
-void Renderer::LoadAnimatedNodes() {
+void Renderer::CreateAnimatedNodes() {
+	CreateRole();
+}
+
+void Renderer::CreateRole() {
+	//load role node
 	Mesh* roleMesh = Mesh::LoadFromMeshFile("Role_T.msh");
 	auto anim = new MeshAnimation("Role_T.anm");
 	auto material = new MeshMaterial("Role_T.mat");
@@ -208,13 +247,23 @@ void Renderer::LoadAnimatedNodes() {
 		GLuint texID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 		matTextures.emplace_back(texID);
 	}
-	AnimatedNode* role = new AnimatedNode(roleMesh, anim, material, matTextures, heightMap);
+	RoleNode* role = new RoleNode(roleMesh, anim, material, matTextures);
+	role->SetHeightMap(heightMap);
+	//Keeping the role on the ground
+	float px = ROLE_POS_X * heightMap->GetHeightmapSize().x;
+	float pz = ROLE_POS_Z * heightMap->GetHeightmapSize().z;
+	role->SetPosition(Vector3(px, heightMap->GetHeight(px, pz), pz));
+	role->SetModelScale(Vector3(ROLE_SCALE, ROLE_SCALE, ROLE_SCALE));
 	if (role) {
 		root->AddChild(role);
 	}
 }
 
-void Renderer::LoadMaterialNodes() {
+void Renderer::CreateMaterialNodes() {
+	CreateTree();
+}
+
+void Renderer::CreateTree() {
 	Mesh* treeMesh = Mesh::LoadFromMeshFile("Big_Tree.msh");
 	MeshMaterial* material = new MeshMaterial("Big_Tree.mat");
 	if (!treeMesh || !material) {

@@ -30,6 +30,14 @@ void SceneNode::Draw(OGLRenderer& r) {
 	}
 }
 
+void SceneNode::DrawShadow(OGLRenderer& r) {
+	if (mesh) {
+		r.UpdateModelMatrix(worldTransform);
+		r.UpdateShaderMatrices();
+		mesh->Draw();
+	}
+}
+
 void SceneNode::Update(float dt) {
 	if (parent) {
 		worldTransform = parent->worldTransform * transform;

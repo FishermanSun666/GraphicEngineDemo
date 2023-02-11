@@ -16,6 +16,8 @@
 //	CLOUD_NUM = 100
 //};
 
+#define SHADOWSIZE 2048
+
 class Camera;
 class Shader;
 class HeightMap;
@@ -35,14 +37,16 @@ protected:
 	void DrawWater();
 	void DrawSkybox();
 	//node tree
-	void LoadNodes();
+	void CreateNodes();
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeList();
 	void ClearNodeLists();
 	void DrawNodes();
-	void DrawNode(SceneNode* n);
-	void LoadAnimatedNodes();
-	void LoadMaterialNodes();
+	void DrawNodeShadows();
+	void CreateAnimatedNodes();
+	void CreateRole();
+	void CreateMaterialNodes();
+	void CreateTree();
 	void CreateTrees(Mesh* mesh, vector<GLuint> textures);
 	/*void LoadCloud();
 	void DrawCloud(SceneNode* n);*/
@@ -51,21 +55,24 @@ protected:
 	Shader* reflectShader;
 	Shader* skyboxShader;
 	Shader* sceneShader;
+	Shader* shadowShader;
 
 	HeightMap* heightMap;
 	Mesh* baseMesh;
 	Mesh* mesh;	
-	Mesh* cloudMesh;
 
 	Light* light;
 	Camera* camera;
-
+	//map
 	GLuint cubeMap;
 	GLuint waterTex;
 	GLuint earthTex;
 	GLuint earthBump;
 	GLuint muddyTex;
-	GLuint CloudTex;
+	//shadow
+	GLuint shadowTex;
+	GLuint shadowFBO;
+	//frustum
 	Frustum frameFrustum;
 	//water
 	float waterRotate;

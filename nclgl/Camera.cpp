@@ -55,7 +55,6 @@ void Camera::UpdateCamera(float dt) {
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_SPACE)) {
 		position.y -= ySpeed;
 	}
-	std::cout << position.y << std::endl;
 }
 
 Matrix4 Camera::BuildViewMatrix() {

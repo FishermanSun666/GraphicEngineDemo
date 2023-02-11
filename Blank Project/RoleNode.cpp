@@ -1,7 +1,7 @@
 #include "RoleNode.h"
 
-AnimatedNode::AnimatedNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* material, vector<GLuint> matTextures, HeightMap* map) : SceneNode(mesh) {
-	if (!anim || !material || !map || 0 == matTextures.size()) {
+RoleNode::RoleNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* material, vector<GLuint> matTextures) : SceneNode(mesh) {
+	if (!anim || !material || 0 == matTextures.size()) {
 		return;
 	}
 	//init
@@ -10,20 +10,17 @@ AnimatedNode::AnimatedNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* materi
 	this->anim = anim;
 	this->material = material;
 	this->matTextures = matTextures;
-	heightMap = map;
-	//Keeping the role on the ground
-	float px = ROLE_POS_X * heightMap->GetHeightmapSize().x;
-	float pz = ROLE_POS_Z* heightMap->GetHeightmapSize().z;
-	worldTransform.SetPositionVector(Vector3(px, heightMap->GetHeight(px, pz), pz));
-	modelScale = Vector3(ROLE_SCALE, ROLE_SCALE, ROLE_SCALE);
 }
 
-void AnimatedNode::Update(float dt) {
+void RoleNode::Update(float dt) {
 	//role turn
+	moveTime += dt;
+	std::cout << moveTime << std::endl;
 	Vector3 position = worldTransform.GetPositionVector();
-	if (position.z > heightMap->GetHeightmapSize().z * ROLE_MOVE_MAX || position.z < heightMap->GetHeightmapSize().z * ROLE_POS_Z - 1) {
-		worldTransform = worldTransform.Rotation(90.0f + 90.0f*direction, Vector3(0.0f, 1.0f, 0.0f));
+	if (moveTime >= (float)ROLE_MOVE_TIME) {
+		worldTransform = worldTransform.Rotation(90.0f + 90.0f * direction, Vector3(0.0f, 1.0f, 0.0f));
 		direction *= -1;
+		moveTime = 0.0f;
 	}
 	//move
 	position.z += ROLE_MOVE_SPEED * dt * direction;
@@ -37,7 +34,7 @@ void AnimatedNode::Update(float dt) {
 	}
 }
 
-void AnimatedNode::Draw(OGLRenderer& r) {
+void RoleNode::Draw(OGLRenderer& r) {
 	auto shader = r.GetCurrentShader();
 	if (!shader) {
 		return;

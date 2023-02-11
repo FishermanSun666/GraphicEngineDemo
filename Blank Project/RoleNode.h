@@ -11,16 +11,17 @@ class HeightMap;
 const enum Role {
 	ROLE_MOVE_SPEED = 60,
 	ROLE_SCALE = 50,
+	ROLE_MOVE_TIME = 20,
 };
 
 const float ROLE_POS_X = 0.40f;
 const float ROLE_POS_Z = 0.45f;
 const float ROLE_MOVE_MAX = 0.70f;
 
-class AnimatedNode : public SceneNode{
+class RoleNode : public SceneNode{
 public:
-	AnimatedNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* material, vector<GLuint> matTextures, HeightMap* map);
-	~AnimatedNode(void) {
+	RoleNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* material, vector<GLuint> matTextures);
+	~RoleNode(void) {
 		if (anim) {
 			delete anim;
 		}
@@ -30,10 +31,18 @@ public:
 	}
 	void Update(float dt) override;
 	void Draw(OGLRenderer& r) override;
+
+	void SetHeightMap(HeightMap* map) {
+		heightMap = map;
+	}
+	void SetPosition(Vector3 pos) {
+		worldTransform.SetPositionVector(pos);
+	}
 protected:
 	int direction = 1;
 	int currentFrame;
 	float frameTime;
+	float moveTime = 0.0f;
 
 	HeightMap* heightMap;
 	MeshAnimation* anim;

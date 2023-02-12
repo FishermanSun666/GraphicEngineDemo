@@ -31,12 +31,10 @@ public:
 	}
 	void Update(float dt) override;
 	void Draw(OGLRenderer& r) override;
+	void DrawShadow(OGLRenderer& r) override;
 
 	void SetHeightMap(HeightMap* map) {
 		heightMap = map;
-	}
-	void SetPosition(Vector3 pos) {
-		worldTransform.SetPositionVector(pos);
 	}
 protected:
 	int direction = 1;

@@ -15,7 +15,6 @@ RoleNode::RoleNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* material, vect
 void RoleNode::Update(float dt) {
 	//role turn
 	moveTime += dt;
-	std::cout << moveTime << std::endl;
 	Vector3 position = worldTransform.GetPositionVector();
 	if (moveTime >= (float)ROLE_MOVE_TIME) {
 		worldTransform = worldTransform.Rotation(90.0f + 90.0f * direction, Vector3(0.0f, 1.0f, 0.0f));
@@ -41,7 +40,6 @@ void RoleNode::Draw(OGLRenderer& r) {
 	}
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "animate"), true);
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "transparent"), false);
 	r.UpdateModelMatrix(worldTransform * Matrix4::Scale(modelScale));
 	r.UpdateShaderMatrices();
 	//join frame
@@ -58,4 +56,27 @@ void RoleNode::Draw(OGLRenderer& r) {
 		glBindTexture(GL_TEXTURE_2D, matTextures[i]);
 		mesh->DrawSubMesh(i);
 	}
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "animate"), false);
+}
+
+void RoleNode::DrawShadow(OGLRenderer& r) {
+	auto shader = r.GetCurrentShader();
+	if (!shader) {
+		return;
+	}
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "animate"), true);
+	r.UpdateModelMatrix(worldTransform * Matrix4::Scale(modelScale));
+	r.UpdateShaderMatrices();
+	vector <Matrix4> frameMatrices;
+	const Matrix4* invBindPose = mesh->GetInverseBindPose();
+	const Matrix4* frameData = anim->GetJointData(currentFrame);
+	for (unsigned int i = 0; i < mesh->GetJointCount(); ++i) {
+		frameMatrices.emplace_back(frameData[i] * invBindPose[i]);
+	}
+	int j = glGetUniformLocation(shader->GetProgram(), "joints");
+	glUniformMatrix4fv(j, frameMatrices.size(), false, (float*)frameMatrices.data());
+	for (int i = 0; i < mesh->GetSubMeshCount(); ++i) {
+		mesh->DrawSubMesh(i);
+	}
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "animate"), false);
 }

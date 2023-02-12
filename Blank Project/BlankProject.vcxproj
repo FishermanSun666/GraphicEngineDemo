@@ -76,6 +76,7 @@
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
     <IncludePath>..\Third Party\;$(ProjectDir)..\;$(IncludePath)</IncludePath>
     <LibraryPath>..\..\SOIL\$(Configuration)\;..\$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>..\Third Party\;$(ProjectDir)..\;$(IncludePath)</IncludePath>
@@ -142,12 +143,14 @@
     <ClCompile Include="BlankProject.cpp" />
     <ClCompile Include="RoleNode.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="SimpleNode.cpp" />
     <ClCompile Include="TreeNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RoleNode.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderNode.h" />
+    <ClInclude Include="SimpleNode.h" />
     <ClInclude Include="TreeNode.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

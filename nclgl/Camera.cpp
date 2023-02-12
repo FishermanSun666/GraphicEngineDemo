@@ -37,9 +37,9 @@ void Camera::UpdateCamera(float dt) {
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_W)) {
 		position += forward * zSpeed;
 	}
-	else {
-		position += forward * deSpeed;
-	}
+	//else {
+	//	position += forward * deSpeed;
+	//}
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_S)) {
 		position -= forward * zSpeed;
 	}

@@ -2,27 +2,32 @@
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	//initialize
-	baseMesh = Mesh::GenerateQuad();
+	quadMesh = Mesh::GenerateQuad();
 	heightMap = new HeightMap(TEXTUREDIR"noise.png");
 	Vector3 heightmapSize = heightMap->GetHeightmapSize();
 	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.65f, 3.0f, 0.65f));
-	light = new Light(heightmapSize * Vector3(0.5f, 1.5f, 0.5f), Vector4(1.24f, 1.24f, 1.275f, 1), heightmapSize.x);
+	light = new Light(heightmapSize * Vector3(0.5f, 2.0f, 0.0f), Vector4(3.72f, 3.72f, 3.825f, 1), heightmapSize.x);
 	//load texture
 	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"water.TGA", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	earthTex = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	earthTex = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.JPG", 
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	earthBump = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	muddyTex = SOIL_load_OGL_texture(TEXTUREDIR"muddy.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	sunTex = SOIL_load_OGL_texture(TEXTUREDIR"sun_texture.jpg",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	cubeMap = SOIL_load_OGL_cubemap(
 		TEXTUREDIR"blizzard_rt.jpg", TEXTUREDIR"blizzard_lf.jpg",
 		TEXTUREDIR"blizzard_up.jpg", TEXTUREDIR"blizzard_dn.jpg",
 		TEXTUREDIR "blizzard_bk.jpg", TEXTUREDIR"blizzard_ft.jpg",
 		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
-	if (!earthTex || !earthBump || !cubeMap || !muddyTex ||!waterTex) {
+	if (!earthTex || !earthBump || !cubeMap || !waterTex || !sunTex || !muddyTex ) {
 		return;
 	}
 	SetTextureRepeating(earthTex, true);
 	SetTextureRepeating(earthBump, true);
 	SetTextureRepeating(waterTex, true);
+	SetTextureRepeating(muddyTex, true);
+	SetTextureRepeating(sunTex, true);
 	
 	sceneShader = new Shader("SceneVertex.glsl", "SceneFragment.glsl");
 	reflectShader = new Shader("reflectVertex.glsl", "reflectFragment.glsl");
@@ -50,8 +55,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glGenFramebuffers(1, &shadowFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-		GL_TEXTURE_2D, shadowTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex, 0);
 	glDrawBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -66,40 +70,43 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 }
 
 Renderer::~Renderer(void) {
+	glDeleteTextures(1, &cubeMap);
+	glDeleteTextures(1, &waterTex);
+	glDeleteTextures(1, &earthTex);
+	glDeleteTextures(1, &earthBump);
+	glDeleteTextures(1, &sunTex);
+	glDeleteTextures(1, &muddyTex);
 	glDeleteTextures(1, &shadowTex);
 	glDeleteFramebuffers(1, &shadowFBO);
 
 	if (camera) {
 		delete camera;
 	}
-	if (baseMesh) {
-		delete baseMesh;
-	}
-	if (reflectShader) {
-		delete reflectShader;
-	}
-	if (skyboxShader) {
-		delete skyboxShader;
-	}
-	if (mapShader) {
-		delete mapShader;
-	}
 	if (light) {
 		delete light;
 	}
-	if (sceneShader) {
-		delete sceneShader;
-	}	
+	if (quadMesh) {
+		delete quadMesh;
+	}
+	//if (reflectShader) {
+	//	delete reflectShader;
+	//}
+	//if (skyboxShader) {
+	//	delete skyboxShader;
+	//}
+	//if (mapShader) {
+	//	delete mapShader;
+	//}
+	//if (sceneShader) {
+	//	delete sceneShader;
+	//}	
 }
 
 void Renderer::UpdateScene(float dt) {
-	if (camera->GetPosition().x > heightMap->GetHeightmapSize().x * 0.8f || camera->GetPosition().z > heightMap->GetHeightmapSize().z * 0.8f) {
-		float yaw = camera->GetYaw();
-		yaw = (int)yaw % 180 ;
-		camera->SetYaw(yaw);
-	}
 	camera->UpdateCamera(dt);
+	light->Rotation(dt, heightMap->GetHeightmapSize() * Vector3(0.5f, 0.0f, 0.5f));
 	//update frustum
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 	viewMatrix = camera->BuildViewMatrix();
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 	//rotate and shift the texture applied to the water slightly.
@@ -112,25 +119,21 @@ void Renderer::UpdateScene(float dt) {
 void Renderer::RenderScene() {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	DrawSkybox();
-	DrawWater();
-
 	//node tree
 	BuildNodeLists(root);
 	SortNodeList();
 	DrawNodeShadows();
 	DrawHeightmap();
 	DrawNodes();
-    
 	ClearNodeLists();
-
-	
+	DrawWater();
 }
 
 void Renderer::DrawSkybox() {
 	glDepthMask(GL_FALSE);
 	BindShader(skyboxShader);
 	UpdateShaderMatrices();
-	baseMesh->Draw();
+	quadMesh->Draw();
 	glDepthMask(GL_TRUE);
 }
 
@@ -142,6 +145,8 @@ void Renderer::DrawHeightmap() {
 	viewMatrix = camera->BuildViewMatrix();
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 
+	glUniform1i(glGetUniformLocation(mapShader->GetProgram(), "map"), true);
+
 	glUniform3fv(glGetUniformLocation(mapShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
 
 	glUniform1i(glGetUniformLocation(mapShader->GetProgram(), "diffuseTex"), 0);
@@ -152,17 +157,17 @@ void Renderer::DrawHeightmap() {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, earthBump);
 
-	glUniform1i(glGetUniformLocation(mapShader->GetProgram(), "muddyTex"), 2);
+	glUniform1i(glGetUniformLocation(mapShader->GetProgram(), "shadowTex"), 2);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, muddyTex);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
 
-	glUniform1i(glGetUniformLocation(sceneShader->GetProgram(),"shadowTex"), 3);
+	glUniform1i(glGetUniformLocation(mapShader->GetProgram(), "muddyTex"), 3);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, muddyTex);
 
-
 	UpdateShaderMatrices();
 	heightMap->Draw();
+	glUniform1i(glGetUniformLocation(mapShader->GetProgram(), "map"), false);
 }
 
 void Renderer::DrawWater() {
@@ -178,17 +183,18 @@ void Renderer::DrawWater() {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, waterTex);
-	glActiveTexture(GL_TEXTURE1);
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 
 	Vector3 hSize = heightMap->GetHeightmapSize();
 
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 	modelMatrix = Matrix4::Translation(hSize * 0.5f) * Matrix4::Scale(hSize * 0.5f) * Matrix4::Rotation(90, Vector3(1, 0, 0));
 	textureMatrix = Matrix4::Translation(Vector3(waterCycle, 0.0f, waterCycle)) * Matrix4::Scale(Vector3(10, 10, 10)) * Matrix4::Rotation(waterRotate, Vector3(0, 0, 1));
 
 	UpdateShaderMatrices();
-	SetShaderLight(*light);
-	baseMesh->Draw();
+	//SetShaderLight(*light);
+	quadMesh->Draw();
 }
 
 
@@ -215,14 +221,10 @@ void Renderer::DrawNodeShadows() {
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	BindShader(shadowShader);
-	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3(0, 0, 0));
-	projMatrix = Matrix4::Perspective(1, 25, 1, 90);
+	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3(heightMap->GetHeightmapSize() * Vector3(0.5f, 0.0f, 0.5f)));
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 	shadowMatrix = projMatrix * viewMatrix;
-
 	for (const auto& i : nodeList) {
-		i->DrawShadow(*this);
-	}
-	for (const auto& i : transparentNodeList) {
 		i->DrawShadow(*this);
 	}
 
@@ -236,10 +238,36 @@ void Renderer::CreateNodes(void) {
 	root = new SceneNode();
 	CreateAnimatedNodes();
 	CreateMaterialNodes();
+	CreateSimpleNodes();
 	//LoadCloud();
 }
 
+void Renderer::CreateSimpleNodes() {
+	if (!root) {
+		return;
+	}
+	CreateSunNode();
+}
+
+void Renderer::CreateSunNode() {
+	Mesh* sunMesh = Mesh::LoadFromMeshFile("Sphere.msh");
+	auto node = new SunNode(sunMesh);
+	float px = ROLE_POS_X * heightMap->GetHeightmapSize().x;
+	float pz = ROLE_POS_Z * heightMap->GetHeightmapSize().z + 300;
+	node->SetTransform(Matrix4::Translation(Vector3(px, heightMap->GetHeight(px, pz) + 200, pz)));
+	node->SetModelScale(Vector3(100, 100, 100));
+	node->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.2f));
+	node->SetBoundingRadius(2000.0f);
+	node->SetTexture(sunTex);
+	if (root) {
+		root->AddChild(node);
+	}
+}
+
 void Renderer::CreateAnimatedNodes() {
+	if (!root) {
+		return;
+	}
 	CreateRole();
 }
 
@@ -265,12 +293,16 @@ void Renderer::CreateRole() {
 	float pz = ROLE_POS_Z * heightMap->GetHeightmapSize().z;
 	role->SetPosition(Vector3(px, heightMap->GetHeight(px, pz), pz));
 	role->SetModelScale(Vector3(ROLE_SCALE, ROLE_SCALE, ROLE_SCALE));
-	if (role) {
+	role->SetBoundingRadius(2000.0f);
+	if (root) {
 		root->AddChild(role);
 	}
 }
 
 void Renderer::CreateMaterialNodes() {
+	if (!root) {
+		return;
+	}
 	CreateTree();
 }
 
@@ -311,7 +343,7 @@ void Renderer::CreateTrees(Mesh* mesh, vector<GLuint> textures) {
 		float nz = (rand() + TREE_MIN_SPACE) % (int)mapSize.z;
 		s->SetTransform(Matrix4::Translation(Vector3(nx, heightMap->GetHeight(nx, nz), nz)));
 		s->SetModelScale(Vector3(nSize, nSize, nSize));
-		s->SetBoundingRadius(20000.0f);
+		s->SetBoundingRadius(2000.0f);
 		root->AddChild(s);
 	}
 }

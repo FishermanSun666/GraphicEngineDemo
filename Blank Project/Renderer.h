@@ -1,6 +1,7 @@
 #pragma once
 #include "RoleNode.h"
 #include "TreeNode.h"
+#include "SimpleNode.h"
 #include "../nclgl/OGLRenderer.h"
 #include "../nclgl/SceneNode.h"
 #include "../nclgl/Frustum.h"
@@ -43,6 +44,8 @@ protected:
 	void ClearNodeLists();
 	void DrawNodes();
 	void DrawNodeShadows();
+	void CreateSimpleNodes();
+	void CreateSunNode();
 	void CreateAnimatedNodes();
 	void CreateRole();
 	void CreateMaterialNodes();
@@ -58,7 +61,7 @@ protected:
 	Shader* shadowShader;
 
 	HeightMap* heightMap;
-	Mesh* baseMesh;
+	Mesh* quadMesh;
 	Mesh* mesh;	
 
 	Light* light;
@@ -68,6 +71,7 @@ protected:
 	GLuint waterTex;
 	GLuint earthTex;
 	GLuint earthBump;
+	GLuint sunTex;
 	GLuint muddyTex;
 	//shadow
 	GLuint shadowTex;
@@ -81,4 +85,7 @@ protected:
 	SceneNode* root;
 	vector<SceneNode*> transparentNodeList;
 	vector<SceneNode*> nodeList;
+	//status param
+	bool autoCamera;
+	bool lightMove;
 };

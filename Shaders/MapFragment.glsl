@@ -6,6 +6,7 @@ uniform sampler2D shadowTex;
 //mesh type
 uniform bool animate;
 uniform bool transparent;
+uniform bool map;
 //light
 uniform vec3 cameraPos;
 uniform vec4 lightColour;
@@ -33,6 +34,10 @@ void main(void) {
 		fragColour *= diffuse;
 		return;
 	}
+	//change texture
+	if (IN.height < 128.0f && map) {
+		diffuse = texture(muddyTex, IN.texCoord);
+	}
 
 	vec3 incident = normalize(lightPos - IN.worldPos);
 	vec3 viewDir = normalize(cameraPos - IN.worldPos);
@@ -49,7 +54,7 @@ void main(void) {
 	float specFactor = clamp(dot(halfDir, normal), 0.0, 1.0);
 	specFactor = pow(specFactor, 60.0 );
 	//shadow
-	float shadow = 1.0;
+	float shadow = 1.0f;
 	vec3 shadowNDC = IN.shadowProj.xyz / IN.shadowProj.w;
 	if(abs(shadowNDC.x) < 1.0f && abs(shadowNDC.y) < 1.0f && abs(shadowNDC.z) < 1.0f) {
 		vec3 biasCoord = shadowNDC * 0.5f + 0.5f;
@@ -58,10 +63,7 @@ void main(void) {
 			 shadow = 0.0f;
 		}
 	}
-	//change texture
-//	if (IN.height < 120.0f) {
-//		diffuse = texture(muddyTex, IN.texCoord);
-//	}
+
 	vec3 surface = (diffuse.rgb * lightColour.rgb); //Base colour
 	fragColour.rgb = surface * attenuation * lambert; //diffuse
 	fragColour.rgb += (lightColour.rgb * specFactor)* attenuation * 0.33;

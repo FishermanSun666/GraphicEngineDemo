@@ -39,6 +39,10 @@ public:
 	GLuint GetTexture() const { return texture; }
 	void SetTexture(GLuint t) { texture = t; }
 
+	virtual void SetPosition(Vector3 pos) {
+		worldTransform.SetPositionVector(pos);
+	}
+
 	static bool CompareByCameraDistance(SceneNode* a, SceneNode* b) {
 		return (a->distanceFromCamera < b->distanceFromCamera) ? true: false;
 	}

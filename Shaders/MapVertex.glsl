@@ -5,8 +5,10 @@ uniform mat4 projMatrix;
 uniform mat4 shadowMatrix;
 
 uniform vec3 lightPos;
+uniform vec4 nodeColour;
 uniform bool animate;
 uniform bool transparent;
+uniform bool map;
 
 in vec3 position;
 in vec4 colour;
@@ -48,13 +50,15 @@ void main(void) {
 	OUT.worldPos = worldPos.xyz;
 	gl_Position = (projMatrix * viewMatrix) * worldPos;
 	OUT.height = finalPos.y;
-	OUT.colour = colour;
+	OUT.colour = nodeColour;
 	OUT.texCoord = texCoord;
 	//light
 	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
-	OUT.normal = normalize(normalMatrix * normalize(normal));
-	OUT.tangent = normalize(normalMatrix * normalize(tangent.xyz));
-	OUT.binormal = cross(OUT.normal, OUT.tangent) * tangent.w;
+	vec3 wNormal = normalize(normalMatrix * normalize(normal));
+	vec3 wTangent = normalize(normalMatrix * normalize(tangent.xyz));
+	OUT.normal = wNormal;
+	OUT.tangent = wTangent;
+	OUT.binormal = cross(wNormal, wTangent) * tangent.w;
 	//shadow
 	vec3 viewDir = normalize(lightPos - worldPos.xyz);
 	vec4 pushVal = vec4(OUT.normal , 0) * dot(viewDir, OUT.normal);

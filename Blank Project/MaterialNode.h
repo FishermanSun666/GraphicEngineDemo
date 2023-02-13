@@ -3,11 +3,12 @@
 #include "../nclgl/Shader.h"
 #include "../nclgl/MeshMaterial.h"
 
-const enum Tree {
-	TREE_NUM = 20,
-	TREE_MIN_SPACE = 100,
-	TREE_MIN = 50,
-	TREE_RANGE = 30,
+const enum LandScapeParam {
+	TREE_NUM = 30,
+	LOW_GRASS_NUM = 1000,
+	HIGH_GRASS_NUM = 400,
+	LANDSCAPE_SIZE_MIN = 100,
+	LANDSCAPE_SIZE_INTERVAL = 30,
 };
 
 class MaterialNode : public SceneNode

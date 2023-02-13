@@ -33,6 +33,7 @@ public:
 	~Renderer(void);
 	void RenderScene() override;
 	void UpdateScene(float dt) override;
+	void UpdateKeyboard();
 
 protected:
 	void DrawHeightmap();
@@ -48,10 +49,10 @@ protected:
 	void CreateSimpleNodes();
 	void CreateSunNode();
 	void CreateAnimatedNodes();
-	void CreateRole();
+	void CreateRoleNode();
 	void CreateMaterialNodes();
-	void CreateTree();
-	void CreateTrees(Mesh* mesh, vector<GLuint> textures);
+	void CreateLandscapeNode(int number, string meshFile, string matFile);
+	void BuildLandscapes(int number, Mesh* mesh, vector<GLuint> textures);
 	/*void LoadCloud();
 	void DrawCloud(SceneNode* n);*/
 
@@ -88,5 +89,5 @@ protected:
 	vector<SceneNode*> nodeList;
 	//status param
 	bool autoCamera;
-	bool lightMove;
+	bool moveLight;
 };

@@ -8,7 +8,8 @@ void SunNode::Update(float dt) {
 	if (!light) {
 		return;
 	}
-	worldTransform.SetPositionVector(light->GetPosition() * 3.0f);
+	worldTransform.SetPositionVector(light->GetPosition());
+	worldTransform.Rotation(angle, Vector3(1.0f, 1.0f, 1.0f));
 }
 
 void SunNode::Draw(OGLRenderer& r) {

@@ -14,8 +14,8 @@ const enum Role {
 	ROLE_MOVE_TIME = 20,
 };
 
-const float ROLE_POS_X = 0.40f;
-const float ROLE_POS_Z = 0.45f;
+const float ROLE_POS_X = 0.65f;
+const float ROLE_POS_Z = 0.35f;
 const float ROLE_MOVE_MAX = 0.70f;
 
 class RoleNode : public SceneNode{

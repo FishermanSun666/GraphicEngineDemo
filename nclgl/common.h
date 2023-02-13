@@ -41,3 +41,4 @@ static inline float DegToRad(const float rad)	{
 #define MESHDIR		"../Meshes/"
 #define TEXTUREDIR  "../Textures/"
 #define SOUNDSDIR	"../Sounds/"
+#define SKYBOXDIR	"../Textures/SkyBox/"

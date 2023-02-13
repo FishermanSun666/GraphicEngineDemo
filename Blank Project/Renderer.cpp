@@ -6,7 +6,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	heightMap = new HeightMap(TEXTUREDIR"noise.png");
 	Vector3 heightmapSize = heightMap->GetHeightmapSize();
 	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.65f, 3.0f, 0.65f));
-	light = new Light(heightmapSize * Vector3(0.5f, 2.0f, 0.0f), Vector4(3.72f, 3.72f, 3.825f, 1), heightmapSize.x);
+	light = new Light(heightmapSize * Vector3(0.5f, 2.0f, 0.0f), Vector4(2.55f, 2.46f, 1.45f, 1), heightmapSize.x);
 	//load texture
 	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"water.TGA", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	earthTex = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.JPG", 
@@ -15,11 +15,16 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	muddyTex = SOIL_load_OGL_texture(TEXTUREDIR"muddy.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	sunTex = SOIL_load_OGL_texture(TEXTUREDIR"sun_texture.jpg",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	//cubeMap = SOIL_load_OGL_cubemap(
+	//	TEXTUREDIR"blizzard_rt.jpg", TEXTUREDIR"blizzard_lf.jpg",
+	//	TEXTUREDIR"blizzard_up.jpg", TEXTUREDIR"blizzard_dn.jpg",
+	//	TEXTUREDIR "blizzard_bk.jpg", TEXTUREDIR"blizzard_ft.jpg",
+	//	SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 	cubeMap = SOIL_load_OGL_cubemap(
-		TEXTUREDIR"blizzard_rt.jpg", TEXTUREDIR"blizzard_lf.jpg",
-		TEXTUREDIR"blizzard_up.jpg", TEXTUREDIR"blizzard_dn.jpg",
-		TEXTUREDIR "blizzard_bk.jpg", TEXTUREDIR"blizzard_ft.jpg",
-		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
+		SKYBOXDIR"rusted_rt.jpg", SKYBOXDIR"rusted_lf.jpg",
+		SKYBOXDIR"rusted_up.jpg", SKYBOXDIR"rusted_dn.jpg",
+		SKYBOXDIR "rusted_bk.jpg", SKYBOXDIR"rusted_ft.jpg",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0);
 	if (!earthTex || !earthBump || !cubeMap || !waterTex || !sunTex || !muddyTex ) {
 		return;
 	}
@@ -50,7 +55,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_SIZE, SHADOW_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glGenFramebuffers(1, &shadowFBO);
@@ -217,7 +222,7 @@ void Renderer::DrawNodes() {
 void Renderer::DrawNodeShadows() {
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
+	glViewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	BindShader(shadowShader);
@@ -251,13 +256,13 @@ void Renderer::CreateSimpleNodes() {
 
 void Renderer::CreateSunNode() {
 	Mesh* sunMesh = Mesh::LoadFromMeshFile("Sphere.msh");
-	auto node = new SunNode(sunMesh);
-	float px = ROLE_POS_X * heightMap->GetHeightmapSize().x;
-	float pz = ROLE_POS_Z * heightMap->GetHeightmapSize().z + 300;
-	node->SetTransform(Matrix4::Translation(Vector3(px, heightMap->GetHeight(px, pz) + 200, pz)));
-	node->SetModelScale(Vector3(100, 100, 100));
-	node->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.2f));
-	node->SetBoundingRadius(2000.0f);
+	auto node = new SunNode(sunMesh, light);
+	//float px = ROLE_POS_X * heightMap->GetHeightmapSize().x;
+	//float pz = ROLE_POS_Z * heightMap->GetHeightmapSize().z + 300;
+	//node->SetTransform(Matrix4::Translation(Vector3(px, heightMap->GetHeight(px, pz) + 200, pz)));
+	node->SetModelScale(Vector3(SUN_SIZE, SUN_SIZE, SUN_SIZE));
+	node->SetColour(Vector4(2.55f, 2.36f, 1.39f, 0.4f));
+	//node->SetBoundingRadius(200000.0f);
 	node->SetTexture(sunTex);
 	if (root) {
 		root->AddChild(node);
@@ -334,14 +339,24 @@ void Renderer::CreateTrees(Mesh* mesh, vector<GLuint> textures) {
 		return;
 	}
 	Vector3 mapSize = heightMap->GetHeightmapSize();
-	float size = 0;
+	float sizeBase = 0;
+	//random generate
 	for (int i = 0; i < TREE_NUM; i++) {
-		MaterialNode* s = new MaterialNode(mesh, textures);
-		size = rand() % (TREE_RANGE);
-		float nSize = size + TREE_MIN;
-		float nx = (rand() + TREE_MIN_SPACE) % (int)mapSize.x * 0.7f;
+		sizeBase = rand() % (TREE_RANGE);
+		float nSize = sizeBase + TREE_MIN;
+		float nx = (rand() + TREE_MIN_SPACE) % (int)mapSize.x;
 		float nz = (rand() + TREE_MIN_SPACE) % (int)mapSize.z;
-		s->SetTransform(Matrix4::Translation(Vector3(nx, heightMap->GetHeight(nx, nz), nz)));
+		float ny = heightMap->GetHeight(nx, nz);
+		//no trees in the river
+		if (ny <= WATER_HEIGHT) {
+			if (0 < i) {
+				i--;
+			}
+			continue;
+		}
+
+		MaterialNode* s = new MaterialNode(mesh, textures);
+		s->SetTransform(Matrix4::Translation(Vector3(nx, ny, nz)));
 		s->SetModelScale(Vector3(nSize, nSize, nSize));
 		s->SetBoundingRadius(2000.0f);
 		root->AddChild(s);

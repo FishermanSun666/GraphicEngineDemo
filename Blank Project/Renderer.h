@@ -1,7 +1,7 @@
 #pragma once
 #include "RoleNode.h"
-#include "TreeNode.h"
-#include "SimpleNode.h"
+#include "MaterialNode.h"
+#include "SunNode.h"
 #include "../nclgl/OGLRenderer.h"
 #include "../nclgl/SceneNode.h"
 #include "../nclgl/Frustum.h"
@@ -17,7 +17,8 @@
 //	CLOUD_NUM = 100
 //};
 
-#define SHADOWSIZE 2048
+#define SHADOW_SIZE 2048
+#define WATER_HEIGHT 128
 
 class Camera;
 class Shader;

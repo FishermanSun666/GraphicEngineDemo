@@ -20,10 +20,10 @@
     <ClCompile Include="RoleNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TreeNode.cpp">
+    <ClCompile Include="MaterialNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SimpleNode.cpp">
+    <ClCompile Include="SunNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -37,10 +37,10 @@
     <ClInclude Include="RenderNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TreeNode.h">
+    <ClInclude Include="MaterialNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleNode.h">
+    <ClInclude Include="SunNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

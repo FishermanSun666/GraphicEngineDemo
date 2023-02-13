@@ -17,7 +17,7 @@ public:
 	Vector3 GetPosition() const { return position; }
 	void SetPosition(const Vector3& val) { position = val; }
 	void Rotation(float dt, const Vector3 normal) {
-		position = Matrix4::Rotation(dt, normal)*position;
+		position = Matrix4::Rotation(20*dt, normal)*position;
 	}
 
 	float GetRadius() const { return radius; }

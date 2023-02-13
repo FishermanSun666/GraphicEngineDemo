@@ -1,4 +1,15 @@
-#include "SimpleNode.h"
+#include "SunNode.h"
+
+void SunNode::Update(float dt) {
+	angle += dt * 10.0f;
+	if (angle >= 360.0f) {
+		angle -= 360.0f;
+	}
+	if (!light) {
+		return;
+	}
+	worldTransform.SetPositionVector(light->GetPosition() * 3.0f);
+}
 
 void SunNode::Draw(OGLRenderer& r) {
 	if (!mesh) {

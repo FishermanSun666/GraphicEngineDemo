@@ -1,4 +1,4 @@
-#include "TreeNode.h"
+#include "MaterialNode.h"
 
 void MaterialNode::Draw(OGLRenderer& r) {
 	if (!mesh) {

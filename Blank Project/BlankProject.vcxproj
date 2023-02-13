@@ -143,15 +143,15 @@
     <ClCompile Include="BlankProject.cpp" />
     <ClCompile Include="RoleNode.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="SimpleNode.cpp" />
-    <ClCompile Include="TreeNode.cpp" />
+    <ClCompile Include="SunNode.cpp" />
+    <ClCompile Include="MaterialNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RoleNode.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderNode.h" />
-    <ClInclude Include="SimpleNode.h" />
-    <ClInclude Include="TreeNode.h" />
+    <ClInclude Include="SunNode.h" />
+    <ClInclude Include="MaterialNode.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

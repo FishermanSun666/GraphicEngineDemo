@@ -8,10 +8,13 @@ in vec3 position;
 in vec2 texCoord;
 
 out Vertex {
+	vec3 worldPos;
 	vec2 texCoord;
 } OUT;
 void main(void) {
 	mat4 mvp = projMatrix * viewMatrix * modelMatrix;
-	gl_Position = mvp * vec4(position, 1.0);
+	vec4 worldPos = mvp * vec4(position, 1.0);
+	gl_Position = worldPos;
+	OUT.worldPos = worldPos.xyz;
 	OUT.texCoord = (textureMatrix * vec4(texCoord, 0.0, 1.0)).xy;
 }

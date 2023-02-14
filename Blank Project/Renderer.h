@@ -19,6 +19,7 @@
 
 #define SHADOW_SIZE 2048
 #define WATER_HEIGHT 128
+#define POST_PASSES 10
 
 class Camera;
 class Shader;
@@ -36,16 +37,20 @@ public:
 	void UpdateKeyboard();
 
 protected:
+	void InitBasicScene();
+	void DrawScene();
 	void DrawHeightmap();
 	void DrawWater();
 	void DrawSkybox();
+	void DrawNodes();
+	void DrawNodeShadows();
+	void DrawPostProcess();
+	void PresentScene();
 	//node tree
 	void CreateNodes();
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeList();
 	void ClearNodeLists();
-	void DrawNodes();
-	void DrawNodeShadows();
 	void CreateSimpleNodes();
 	void CreateSunNode();
 	void CreateAnimatedNodes();
@@ -53,17 +58,19 @@ protected:
 	void CreateMaterialNodes();
 	void CreateLandscapeNode(int number, string meshFile, string matFile);
 	void BuildLandscapes(int number, Mesh* mesh, vector<GLuint> textures);
-	/*void LoadCloud();
-	void DrawCloud(SceneNode* n);*/
 
-	Shader* mapShader;
-	Shader* reflectShader;
-	Shader* skyboxShader;
 	Shader* sceneShader;
+	Shader* skyboxShader;
+	//water reflect
+	Shader* reflectShader;
+	//shadow
 	Shader* shadowShader;
+	//post process
+	Shader* textureShader;
+	Shader* processShader;
 
 	HeightMap* heightMap;
-	Mesh* quadMesh;
+	Mesh* quad;
 	Mesh* mesh;	
 
 	Light* light;
@@ -81,8 +88,8 @@ protected:
 	//frustum
 	Frustum frameFrustum;
 	//water
-	float waterRotate;
-	float waterCycle;
+	float waterRotate = 0.0f;
+	float waterCycle = 0.0f;
 	//node list
 	SceneNode* root;
 	vector<SceneNode*> transparentNodeList;
@@ -90,4 +97,9 @@ protected:
 	//status param
 	bool autoCamera;
 	bool moveLight;
+	//post process
+	GLuint bufferFBO;
+	GLuint processFBO;
+	GLuint bufferColourTex[2];
+	GLuint bufferDepthTex;
 };

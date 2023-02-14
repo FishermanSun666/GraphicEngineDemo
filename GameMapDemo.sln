@@ -29,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{1A82
 		Shaders\MatrixVertex.glsl = Shaders\MatrixVertex.glsl
 		Shaders\pointlightfrag.glsl = Shaders\pointlightfrag.glsl
 		Shaders\pointlightvertex.glsl = Shaders\pointlightvertex.glsl
+		Shaders\ProcessFragment.glsl = Shaders\ProcessFragment.glsl
 		Shaders\reflectFragment.glsl = Shaders\reflectFragment.glsl
 		Shaders\reflectVertex.glsl = Shaders\reflectVertex.glsl
 		Shaders\SceneFragment.glsl = Shaders\SceneFragment.glsl

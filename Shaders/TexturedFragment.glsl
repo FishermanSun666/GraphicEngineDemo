@@ -2,6 +2,7 @@
 uniform sampler2D diffuseTex;
 
 in Vertex {
+	vec3 worldPos;
 	vec2 texCoord;
 } IN;
 

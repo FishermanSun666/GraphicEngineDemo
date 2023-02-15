@@ -13,6 +13,9 @@ RoleNode::RoleNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* material, vect
 }
 
 void RoleNode::Update(float dt) {
+	if (DEFAULT_VIEW_MODE != viewMode) {
+		return;
+	}
 	//role turn
 	moveTime += dt;
 	Vector3 position = worldTransform.GetPositionVector();
@@ -26,6 +29,10 @@ void RoleNode::Update(float dt) {
 	position.y = heightMap->GetHeight(position.x, position.z);
 	worldTransform.SetPositionVector(position);
 	//role frame
+	ExecuteFrame(dt);
+}
+
+void RoleNode::ExecuteFrame(float dt) {
 	frameTime -= dt;
 	while (frameTime < 0.0f) {
 		currentFrame = (currentFrame + 1) % anim->GetFrameCount();
@@ -34,6 +41,9 @@ void RoleNode::Update(float dt) {
 }
 
 void RoleNode::Draw(OGLRenderer& r) {
+	if (FIRST_PERSON_VIEW_MODE == viewMode) {
+		return;
+	}
 	auto shader = r.GetCurrentShader();
 	if (!shader) {
 		return;
@@ -67,6 +77,7 @@ void RoleNode::DrawShadow(OGLRenderer& r) {
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "animate"), true);
 	r.UpdateModelMatrix(worldTransform * Matrix4::Scale(modelScale));
 	r.UpdateShaderMatrices();
+	//join frame
 	vector <Matrix4> frameMatrices;
 	const Matrix4* invBindPose = mesh->GetInverseBindPose();
 	const Matrix4* frameData = anim->GetJointData(currentFrame);
@@ -79,4 +90,42 @@ void RoleNode::DrawShadow(OGLRenderer& r) {
 		mesh->DrawSubMesh(i);
 	}
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "animate"), false);
+}
+
+void RoleNode::Move(float dt, float dir) {
+	Matrix4 rotation = Matrix4::Rotation(dir, Vector3(0, 1, 0));
+	Vector3 forward = rotation * Vector3(0, 0, -1);
+	Vector3 right = rotation * Vector3(1, 0, 0);
+	Vector3 position = worldTransform.GetPositionVector();
+	float pace = ROLE_MOVE_SPEED * dt;
+	bool move = false;
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_W)) {
+		position += forward * pace;
+		move = true;
+	}
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_S)) {
+		position -= forward * pace;
+		move = true;
+	}
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_A)) {
+		position -= right * pace;
+		move = true;
+	}
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_D)) {
+		position += right * pace;
+		move = true;
+	}
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_SHIFT)) {
+		position.y += pace;
+		move = true;
+	}
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_SPACE)) {
+		position.y -= pace;
+		move = true;
+	}
+	if (move) {
+		worldTransform.SetPositionVector(position);
+		ExecuteFrame(dt);
+	}
+	
 }

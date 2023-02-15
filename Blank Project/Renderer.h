@@ -13,10 +13,6 @@
 #include"../nclgl/MeshMaterial.h"
 #include"../nclgl/CubeRobot.h"
 
-//const enum Cloud {
-//	CLOUD_NUM = 100
-//};
-
 #define SHADOW_SIZE 2048
 #define WATER_HEIGHT 128
 #define POST_PASSES 10
@@ -36,6 +32,7 @@ public:
 	void RenderScene() override;
 	void UpdateScene(float dt) override;
 	void UpdateKeyboard();
+	void UpdateRoleCamera(float dt);
 
 protected:
 	void InitBasicScene();
@@ -122,4 +119,6 @@ protected:
 		Vector3::Vector3(-0.5f, -0.5f, 0.5f),
 		Vector3::Vector3(0.5f, -0.5f, 0.5f)
 	}; //parameters of camera and screen position
+	//perspective binding
+	RoleNode* role;
 };

@@ -32,6 +32,9 @@ public:
 	float GetPitch() const { return pitch; }
 	void SetPitch(float p) { pitch = p; }
 
+	float CaptureYaw();
+	float CapturePitch();
+
 protected:
 	void UpdatePosition(Vector3 forward, Vector3 right, float pace);
 

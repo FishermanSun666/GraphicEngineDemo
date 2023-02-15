@@ -52,7 +52,7 @@ void Renderer::InitBasicScene() {
 	quad = Mesh::GenerateQuad();
 	heightMap = new HeightMap(TEXTUREDIR"noise.png");
 	Vector3 heightmapSize = heightMap->GetHeightmapSize();
-	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.65f, 3.0f, 0.65f));
+	camera = new Camera(-30.0f, 0.0f, heightmapSize * Vector3(0.7f, 3.0f, 0.7f));
 	light = new Light(heightmapSize * Vector3(0.5f, 2.0f, -0.2f), Vector4(3.825f, 3.165f, 2.325f, 1.0f), heightmapSize.x);
 }
 
@@ -94,7 +94,7 @@ void Renderer::InitShaders() {
 void Renderer::UpdateScene(float dt) {
 	UpdateKeyboard();
 	if (!splitScreen) {
-		camera->UpdateCamera(dt);
+		UpdateRoleCamera(dt);
 	}
 	if (moveLight) {
 		light->Rotation(dt, heightMap->GetHeightmapSize() * Vector3(0.5f, 0.0f, 0.5f));
@@ -111,6 +111,12 @@ void Renderer::UpdateScene(float dt) {
 }
 
 void Renderer::UpdateKeyboard() {
+	//view mode
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)) {
+		if (role) {
+			role->ChangeViewMode();
+		}
+	}
 	//move sun
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_2)) {
 		moveLight = moveLight ? false : true;
@@ -125,6 +131,26 @@ void Renderer::UpdateKeyboard() {
 		splitScreen = splitScreen ? false : true;
 		postProcess = splitScreen ? false : postProcess;
 	}
+}
+
+void Renderer::UpdateRoleCamera(float dt) {
+	if (!role) {
+		camera->UpdateCamera(dt);
+		return;
+	}
+	if (DEFAULT_VIEW_MODE == role->GetViewMode()) {
+		camera->UpdateCamera(dt);
+		return;
+	}
+	float dir = camera->CaptureYaw();
+	camera->CapturePitch();
+	role->TurnDirection(dir);
+	role->Move(dt, dir);
+	Vector3 offSet = Vector3(0.0f, ROLE_MODEL_SCALE * 2.4f, 0.0f);
+	if (THIRD_PERSON_VIEW_MODE == role->GetViewMode()) {
+		offSet += Matrix4::Rotation(dir, Vector3(0, 1, 0)) * Vector3(0, 0, 1) * ROLE_THIRD_VIEW_OFFSET;
+	}
+	camera->SetPosition(role->GetPosition() + offSet);
 }
 
 void Renderer::RenderScene() {
@@ -326,13 +352,13 @@ void Renderer::LoadRoleNode() {
 }
 
 void Renderer::GenerateRoleNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* mat, vector<GLuint> textures) {
-	RoleNode* role = new RoleNode(mesh, anim, mat, textures);
+	role = new RoleNode(mesh, anim, mat, textures);
 	role->SetHeightMap(heightMap);
 	//Keeping the role on the ground
 	float px = ROLE_POS_X * heightMap->GetHeightmapSize().x;
 	float pz = ROLE_POS_Z * heightMap->GetHeightmapSize().z;
 	role->SetPosition(Vector3(px, heightMap->GetHeight(px, pz), pz));
-	role->SetModelScale(Vector3(ROLE_SCALE, ROLE_SCALE, ROLE_SCALE));
+	role->SetModelScale(Vector3(ROLE_MODEL_SCALE, ROLE_MODEL_SCALE, ROLE_MODEL_SCALE));
 	role->SetBoundingRadius(heightMap->GetHeightmapSize().Length());
 	if (root) {
 		root->AddChild(role);

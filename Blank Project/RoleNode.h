@@ -28,6 +28,9 @@ public:
 		if (material) {
 			delete material;
 		}
+		for (auto i : matTextures) {
+			glDeleteTextures(1, &i);
+		}
 	}
 	void Update(float dt) override;
 	void Draw(OGLRenderer& r) override;

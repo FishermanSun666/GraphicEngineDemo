@@ -128,6 +128,7 @@
     <TargetName>$(ProjectName)</TargetName>
     <IncludePath>..\Third Party\;$(IncludePath)</IncludePath>
     <LibraryPath>..\Third Party\SOIL\$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
+    <OutDir>..\Blank Project</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>..\Third Party\;$(IncludePath)</IncludePath>

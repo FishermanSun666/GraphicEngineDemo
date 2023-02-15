@@ -2,13 +2,7 @@
 #include"Matrix3.h"
 #include"Vector3.h"
 
-
-enum CameraSpeed {
-	CAMERA_Z_SPEED = 200,
-	CAMERA_X_SPEED = 200,
-	CAMERA_Y_SPEED = 400,
-	
-};
+#define CAMERA_SPEED 200.0f
 
 class Camera {
 public:
@@ -38,14 +32,8 @@ public:
 	float GetPitch() const { return pitch; }
 	void SetPitch(float p) { pitch = p; }
 
-	void ChangeAutoView();
-
 protected:
-	const float g_camAutoPSp = 2.0f;
-	const float g_camAutoYSp = 5.0f;
-
-	float autoPDir = g_camAutoPSp;
-	float autoYDir = g_camAutoYSp;
+	void UpdatePosition(Vector3 forward, Vector3 right, float pace);
 
 	float yaw;
 	float pitch;

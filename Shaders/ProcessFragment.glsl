@@ -17,8 +17,8 @@ void main ( void ) {
 		fragColor = texture2D(sceneTex, IN.texCoord.xy);
 		return;
 	}
-	fragColor = vec4 (0 ,0 ,0 ,1);
-	vec2 delta = vec2 (0 ,0);
+	fragColor = vec4(0 ,0 ,0 ,1);
+	vec2 delta = vec2(0 ,0);
 	if(isVertical == 1) {
 		delta = dFdy(IN.texCoord);
 	} else {

@@ -124,6 +124,7 @@ void RoleNode::Move(float dt, float dir) {
 		move = true;
 	}
 	if (move) {
+		position.y = heightMap->GetHeight(position.x, position.z);
 		worldTransform.SetPositionVector(position);
 		ExecuteFrame(dt);
 	}

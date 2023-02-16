@@ -18,7 +18,7 @@ class HeightMap;
 //role size
 #define ROLE_MODEL_SCALE 50.0f
 //view offset
-#define ROLE_THIRD_VIEW_OFFSET 40.0f
+#define ROLE_THIRD_VIEW_OFFSET 80.0f
 
 enum ViewMode {
 	DEFAULT_VIEW_MODE,

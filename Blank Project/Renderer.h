@@ -17,6 +17,7 @@
 #define WATER_HEIGHT 128
 #define POST_PASSES 10
 #define SPLIT_SCREEN_NUM 4
+#define POINT_LIGHT_COLOUR_BASE 0.3f
 
 class Camera;
 class Shader;
@@ -39,6 +40,7 @@ protected:
 	void InitBasicTextures();
 	void InitShaders();
 	void InitBufferFBO();
+	void GenerateScreenTexture(GLuint& into, bool depth = false, bool shadow = false);
 	void DrawScene();
 	void DrawHeightmap();
 	void DrawWater();
@@ -69,6 +71,12 @@ protected:
 	void DrawSceneWithPostProcess();
 	void ExecutePostProcess();
 	void PresentScene();
+	//deferred rendering
+	void InitDeferredRendering();
+	void GeneratePointLight(float redius, Vector3 position);
+	void DrawPointLights(Vector3 viewPos);
+	void CombineBuffers(GLuint tex);
+	void DrawSceneWithPointLight();
 
 	Shader* sceneShader;
 	Shader* skyboxShader;
@@ -76,8 +84,11 @@ protected:
 	Shader* shadowShader;
 	Shader* textureShader;
 	Shader* processShader;
+	Shader* pointlightShader;
+	Shader* combineShader;
 	//painting mesh
 	Mesh* quad;
+	Mesh* sphere;
 	HeightMap* heightMap;
 	Light* light;
 	Camera* camera;
@@ -103,16 +114,17 @@ protected:
 	//status param
 	bool autoCamera = false;
 	bool moveLight;
-	//buffer process
-	GLuint processFBO;
-	GLuint bufferColourTex[SPLIT_SCREEN_NUM];
-	GLuint bufferDepthTex;
 	//post process
 	bool postProcess = false;
 	GLuint bufferFBO;
+	//buffer process
+	GLuint processFBO;
+	GLuint bufferDepthTex;
+	GLuint bufferNormalTex;
+	GLuint bufferColourTex[SPLIT_SCREEN_NUM];
 	//split screen
 	bool splitScreen = false;
-	Matrix4 screenViewMatrixs[SPLIT_SCREEN_NUM];
+	Vector3 screenViewPosition[SPLIT_SCREEN_NUM];
 	Vector3 screenPositions[SPLIT_SCREEN_NUM] = {
 		Vector3::Vector3(-0.5f, 0.5f, 0.5f),
 		Vector3::Vector3(0.5f, 0.5f, 0.5f),
@@ -121,4 +133,10 @@ protected:
 	}; //parameters of camera and screen position
 	//perspective binding
 	RoleNode* role;
+	//deferred rendering
+	bool dRendering = false;
+	GLuint pointLightFBO;
+	GLuint lightDiffuseTex;
+	GLuint lightSpecularTex;
+	vector<Light*> pointLights;
 };

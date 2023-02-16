@@ -141,12 +141,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BlankProject.cpp" />
+    <ClCompile Include="ParticleEmitter.cpp" />
     <ClCompile Include="RoleNode.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SunNode.cpp" />
     <ClCompile Include="MaterialNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ParticleEmitter.h" />
     <ClInclude Include="RoleNode.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderNode.h" />

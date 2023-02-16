@@ -2,6 +2,7 @@
 #include "RoleNode.h"
 #include "MaterialNode.h"
 #include "SunNode.h"
+#include "ParticleEmitter.h"
 #include "../nclgl/OGLRenderer.h"
 #include "../nclgl/SceneNode.h"
 #include "../nclgl/Frustum.h"
@@ -77,6 +78,10 @@ protected:
 	void DrawPointLights(Vector3 viewPos);
 	void CombineBuffers(GLuint tex);
 	void DrawSceneWithPointLight();
+	//real particle 
+	void InitParticleEmitter();
+	void SetShaderParticleSize(float f);
+	void DrawParticle();
 
 	Shader* sceneShader;
 	Shader* skyboxShader;
@@ -86,6 +91,7 @@ protected:
 	Shader* processShader;
 	Shader* pointlightShader;
 	Shader* combineShader;
+	Shader* particleShader;
 	//painting mesh
 	Mesh* quad;
 	Mesh* sphere;
@@ -99,6 +105,7 @@ protected:
 	GLuint earthBump;
 	GLuint sunTex;
 	GLuint muddyTex;
+	Matrix4 defaultView = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 	//water
 	float waterRotate = 0.0f;
 	float waterCycle = 0.0f;
@@ -135,8 +142,11 @@ protected:
 	RoleNode* role;
 	//deferred rendering
 	bool dRendering = false;
-	GLuint pointLightFBO;
+	GLuint deferRenderFBO;
 	GLuint lightDiffuseTex;
 	GLuint lightSpecularTex;
 	vector<Light*> pointLights;
+	//real particle
+	ParticleEmitter* flameParticleEmitter;
+	GLuint particleTex;
 };

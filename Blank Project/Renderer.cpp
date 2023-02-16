@@ -17,6 +17,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	InitPostProcess();
 	InitSplitScreen();
 	//deferred rendering
+	InitParticleEmitter();
 	InitDeferredRendering();
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -41,7 +42,7 @@ Renderer::~Renderer(void) {
 	glDeleteFramebuffers(1, &processFBO);
 	glDeleteTextures(1, &lightDiffuseTex);
 	glDeleteTextures(1, &lightSpecularTex);
-	glDeleteFramebuffers(1, &pointLightFBO);
+	glDeleteFramebuffers(1, &deferRenderFBO);
 
 	if (quad) {
 		delete quad;
@@ -51,6 +52,9 @@ Renderer::~Renderer(void) {
 	}
 	if (light) {
 		delete light;
+	}
+	if (flameParticleEmitter) {
+		delete flameParticleEmitter;
 	}
 }
 
@@ -88,15 +92,16 @@ void Renderer::InitBasicTextures() {
 }
 
 void Renderer::InitShaders() {
-	sceneShader = new Shader("MapVertex.glsl", "MapFragment.glsl");
+	sceneShader = new Shader("mapVertex.glsl", "mapFragment.glsl");
 	skyboxShader = new Shader("skyboxVertex.glsl", "skyboxFragment.glsl");
 	reflectShader = new Shader("reflectVertex.glsl", "reflectFragment.glsl");
-	shadowShader = new Shader("ShadowVertex.glsl", "ShadowFragment.glsl");
-	textureShader = new Shader("TexturedVertex.glsl", "TexturedFragment.glsl");
-	processShader = new Shader("TexturedVertex.glsl", "ProcessFragment.glsl");
+	shadowShader = new Shader("shadowVertex.glsl", "shadowFragment.glsl");
+	textureShader = new Shader("texturedVertex.glsl", "texturedFragment.glsl");
+	processShader = new Shader("texturedVertex.glsl", "trocessFragment.glsl");
 	pointlightShader = new Shader("pointlightvertex.glsl", "pointlightfrag.glsl");
 	combineShader = new Shader("combinevert.glsl", "combinefrag.glsl");
-	if (!sceneShader->LoadSuccess() || !skyboxShader->LoadSuccess() || !reflectShader->LoadSuccess() || !shadowShader->LoadSuccess() || !textureShader->LoadSuccess() || !processShader->LoadSuccess() || !pointlightShader->LoadSuccess() || !combineShader->LoadSuccess()) {
+	particleShader = new Shader("particleVertex.glsl", "particleFragment.glsl", "particleGeometry.glsl");
+	if (!sceneShader->LoadSuccess() || !skyboxShader->LoadSuccess() || !reflectShader->LoadSuccess() || !shadowShader->LoadSuccess() || !textureShader->LoadSuccess() || !processShader->LoadSuccess() || !pointlightShader->LoadSuccess() || !combineShader->LoadSuccess() || !particleShader->LoadSuccess()){
 		return;
 	}
 }
@@ -130,7 +135,7 @@ void Renderer::UpdateScene(float dt) {
 		light->Rotation(dt, heightMap->GetHeightmapSize() * Vector3(0.5f, 0.0f, 0.5f));
 	}
 	//update frustum
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
+	projMatrix = defaultView;
 	viewMatrix = camera->BuildViewMatrix();
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 	//rotate and shift the texture applied to the water slightly.
@@ -138,6 +143,8 @@ void Renderer::UpdateScene(float dt) {
 	waterCycle += dt * 0.25f;
 	//update node tree
 	root->Update(dt);
+	//particle flame
+	flameParticleEmitter->Update(dt);
 }
 
 void Renderer::UpdateKeyboard() {
@@ -192,7 +199,7 @@ void Renderer::RenderScene() {
 	GenerateNodeLists(root);
 	SortNodeList();
 	DrawShadowBuffer();
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
+	projMatrix = defaultView;
 	if (postProcess) {
 		DrawSceneWithPostProcess();
 	}
@@ -207,6 +214,7 @@ void Renderer::RenderScene() {
 		viewMatrix = camera->BuildViewMatrix();
 		UpdateShaderMatrices();
 		DrawScene();
+		DrawParticle();
 	}
 	ClearNodeLists();
 }
@@ -276,7 +284,7 @@ void Renderer::DrawWater() {
 
 	Vector3 hSize = heightMap->GetHeightmapSize();
 
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
+	projMatrix = defaultView;
 	modelMatrix = Matrix4::Translation(hSize * 0.5f) * Matrix4::Scale(hSize * 0.5f) * Matrix4::Rotation(90, Vector3(1, 0, 0));
 	textureMatrix = Matrix4::Translation(Vector3(waterCycle, 0.0f, waterCycle)) * Matrix4::Scale(Vector3(10, 10, 10)) * Matrix4::Rotation(waterRotate, Vector3(0, 0, 1));
 
@@ -316,7 +324,7 @@ void Renderer::DrawShadowBuffer() {
 
 	BindShader(shadowShader);
 	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition() * Vector3(1.0f, 2.0f, 1.0f), Vector3(heightMap->GetHeightmapSize() * Vector3(0.5f, 0.0f, 0.5f)));
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
+	projMatrix = defaultView;
 	shadowMatrix = projMatrix * viewMatrix;
 	for (const auto& i : nodeList) {
 		i->DrawShadow(*this);
@@ -653,8 +661,8 @@ void Renderer::DrawSplitScreen() {
 void Renderer::InitDeferredRendering() {
 	GenerateScreenTexture(lightDiffuseTex);
 	GenerateScreenTexture(lightSpecularTex);
-	glGenFramebuffers(1, &pointLightFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, pointLightFBO);
+	glGenFramebuffers(1, &deferRenderFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, deferRenderFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lightDiffuseTex, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, lightSpecularTex, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -672,7 +680,7 @@ void Renderer::GeneratePointLight(float redius, Vector3 position) {
 }
 
 void Renderer::DrawPointLights(Vector3 viewPos) {
-	glBindFramebuffer(GL_FRAMEBUFFER, pointLightFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, deferRenderFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lightDiffuseTex, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, lightSpecularTex, 0);
 	BindShader(pointlightShader);
@@ -743,3 +751,43 @@ void Renderer::DrawSceneWithPointLight() {
 	CombineBuffers(bufferColourTex[0]);
 }
 
+void Renderer::InitParticleEmitter() {
+	GenerateScreenTexture(particleTex);
+	flameParticleEmitter = new ParticleEmitter();
+	flameParticleEmitter->SetParticleSize(1.0f);
+	SetShaderParticleSize(flameParticleEmitter->GetParticleSize());
+}
+
+void Renderer::SetShaderParticleSize(float f) {
+	glUniform1f(glGetUniformLocation(particleShader->GetProgram(), "particleSize"), f);
+}
+
+void Renderer::DrawParticle() {
+	glBindFramebuffer(GL_FRAMEBUFFER, deferRenderFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lightDiffuseTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, lightSpecularTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, particleTex, 0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT1);
+	glDrawBuffer(GL_COLOR_ATTACHMENT2);
+	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glDepthMask(GL_FALSE);
+	BindShader(particleShader);
+
+	glUniform1i(glGetUniformLocation(particleShader->GetProgram(), "diffuseTex"), 0);
+	flameParticleEmitter->SetParticleSize(1.0f);
+	SetShaderParticleSize(flameParticleEmitter->GetParticleSize());
+
+	projMatrix = defaultView;
+	Vector3 mapSize = heightMap->GetHeightmapSize();
+	modelMatrix = Matrix4::Translation(mapSize * Vector3(0.5f, 0.8f, 0.5f)) * Matrix4::Scale(Vector3(5, 5, 5));
+
+	textureMatrix.ToIdentity();
+	UpdateShaderMatrices();
+
+	flameParticleEmitter->Draw();
+	glDepthMask(GL_TRUE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}

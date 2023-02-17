@@ -30,10 +30,10 @@ void Camera::UpdatePosition(Vector3 forward, Vector3 right, float pace) {
 		position += right * pace;
 	}
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_SHIFT)) {
-		position.y += pace;
+		position.y -= pace;
 	}
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_SPACE)) {
-		position.y -= pace;
+		position.y += pace;
 	}
 }
 

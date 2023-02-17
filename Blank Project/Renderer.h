@@ -55,10 +55,10 @@ protected:
 	void LoadAnimatedNodes();
 	void LoadRoleNode();
 	void LoadMaterialNodes();
-	void LoadLandscapeNode(int number, string meshFile, string matFile);
+	void LoadLandscapeNode(int number, string meshFile, string matFile, bool groundLight = false);
 	void GenerateSunNode();
 	void GenerateRoleNode(Mesh* mesh, MeshAnimation* anim, MeshMaterial* mat, vector<GLuint> textures);
-	void GenerateLandscapeElements(int number, Mesh* mesh, vector<GLuint> textures);
+	void GenerateLandscapeElements(int number, Mesh* mesh, vector<GLuint> texturesbool, bool groundLight = false);
 	//shadow
 	void InitShadow();
 	void DrawShadowBuffer();

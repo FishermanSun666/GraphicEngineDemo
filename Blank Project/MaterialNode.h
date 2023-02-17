@@ -8,7 +8,7 @@ const enum LandScapeParam {
 	LOW_GRASS_NUM = 1000,
 	HIGH_GRASS_NUM = 400,
 	LANDSCAPE_SIZE_MIN = 100,
-	LANDSCAPE_SIZE_INTERVAL = 30,
+	LANDSCAPE_SIZE_INTERVAL = 60,
 };
 
 class MaterialNode : public SceneNode

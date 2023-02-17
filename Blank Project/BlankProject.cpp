@@ -2,7 +2,7 @@
 #include "Renderer.h"
 
 int main() {
-	Window w("Mapping!", 1280, 720, false);
+	Window w("Mapping!", 1920, 1080, false);
 	if (!w.HasInitialised()) {
 		return -1;
 	}

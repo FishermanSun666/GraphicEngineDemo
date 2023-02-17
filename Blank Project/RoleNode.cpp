@@ -20,10 +20,10 @@ void RoleNode::Update(float dt) {
 	moveTime += dt;
 	Vector3 position = worldTransform.GetPositionVector();
 	if (moveTime >= (float)ROLE_MOVE_TIME) {
-		worldTransform = worldTransform.Rotation(90.0f + 90.0f * direction, Vector3(0.0f, 1.0f, 0.0f));
 		direction *= -1;
 		moveTime = 0.0f;
 	}
+	worldTransform = worldTransform.Rotation(90.0f - 90.0f * direction, Vector3(0.0f, 1.0f, 0.0f));
 	//move
 	position.z += ROLE_MOVE_SPEED * dt * direction;
 	position.y = heightMap->GetHeight(position.x, position.z);

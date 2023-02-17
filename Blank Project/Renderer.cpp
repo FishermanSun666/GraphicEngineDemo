@@ -138,6 +138,12 @@ void Renderer::UpdateScene(float dt) {
 	waterCycle += dt * 0.25f;
 	//update node tree
 	root->Update(dt);
+	if (dRendering) {
+		//update point light
+		for (auto i : pointLights) {
+			i->Breath(dt);
+		}
+	}
 }
 
 void Renderer::UpdateKeyboard() {
@@ -160,6 +166,7 @@ void Renderer::UpdateKeyboard() {
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_4)) {
 		splitScreen = splitScreen ? false : true;
 		postProcess = splitScreen ? false : postProcess;
+		dRendering = splitScreen ? false : dRendering;
 	}
 	//deferred rendering
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_5)) {
@@ -403,12 +410,12 @@ void Renderer::LoadMaterialNodes() {
 	//tree
 	LoadLandscapeNode(TREE_NUM, "tree.msh", "tree.mat");
 	//low grass
-	LoadLandscapeNode(LOW_GRASS_NUM, "grass0.msh", "grass0.mat");
+	LoadLandscapeNode(LOW_GRASS_NUM, "grass0.msh", "grass0.mat", true);
 	//high grass
-	LoadLandscapeNode(HIGH_GRASS_NUM, "grass1.msh", "grass1.mat");
+	LoadLandscapeNode(HIGH_GRASS_NUM, "grass1.msh", "grass1.mat", true);
 }
 
-void Renderer::LoadLandscapeNode(int number, string meshFile, string matFile) {
+void Renderer::LoadLandscapeNode(int number, string meshFile, string matFile, bool groundLight) {
 	Mesh* mesh = Mesh::LoadFromMeshFile(meshFile);
 	MeshMaterial* material = new MeshMaterial(matFile);
 	if (!mesh || !material) {
@@ -424,14 +431,14 @@ void Renderer::LoadLandscapeNode(int number, string meshFile, string matFile) {
 		GLuint texID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 		textures.emplace_back(texID);
 	}
-	//create tree
-	GenerateLandscapeElements(number, mesh, textures);
+	//create
+	GenerateLandscapeElements(number, mesh, textures, groundLight);
 }
 
 //Create trees of a certain density depending on the size of the map
 //@param mesh - tree mesh
 //@param textures - tree's multiple texture
-void Renderer::GenerateLandscapeElements(int number, Mesh* mesh, vector<GLuint> textures) {
+void Renderer::GenerateLandscapeElements(int number, Mesh* mesh, vector<GLuint> textures, bool groundLight) {
 	Vector3 mapSize = heightMap->GetHeightmapSize();
 	float randBase = 0;
 	//random generate
@@ -447,12 +454,18 @@ void Renderer::GenerateLandscapeElements(int number, Mesh* mesh, vector<GLuint> 
 			continue;
 		}
 		MaterialNode* s = new MaterialNode(mesh, textures);
-		auto transform = Matrix4::Translation(Vector3(x, y, z)) * Matrix4::Scale(Vector3(size, size, size)) * Matrix4::Rotation(randBase, Vector3(0, 1, 0));
+		auto transform = Matrix4::Translation(Vector3(x, y, z)) * Matrix4::Scale(Vector3(size, size, size)) * Matrix4::Rotation(rand() % 360, Vector3(0, 1, 0));
 		s->SetTransform(transform);
 		s->SetBoundingRadius(mapSize.Length());
 		root->AddChild(s);
 		//generate point light
-		GeneratePointLight(size * 2.0f, Vector3(x, y + 2.0f * size, z));
+		if (groundLight) {
+			GeneratePointLight(size * 0.5f, Vector3(x, y + 0.1f * size, z));
+		}
+		else {
+			GeneratePointLight(size * 2.5f, Vector3(x, y + 2.0f * size, z));
+		}
+		
 	}
 }
 

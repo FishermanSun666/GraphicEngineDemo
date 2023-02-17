@@ -28,32 +28,32 @@ WASD \ Shift \ Blank - move camera
 
 ### Object surface Shadow
 
-![3](E:\NCL\CSC8502\GameMapDemo\Textures\pic\3.png)
+![3](https://github.com/FishermanSun666/GameMapDemo/blob/master/Textures/pic/3.png)
 
 ### Skeleton animation
 
-![2](E:\NCL\CSC8502\GameMapDemo\Textures\pic\2.gif)
+![2](https://github.com/FishermanSun666/GameMapDemo/blob/master/Textures/pic/2.png)
 
 ### Water surface simulation
 
-![4](E:\NCL\CSC8502\GameMapDemo\Textures\pic\4.gif)
+![4](https://github.com/FishermanSun666/GameMapDemo/blob/master/Textures/pic/4.gif)
 
 ### Global dynamic light and shadow
 
-![5](E:\NCL\CSC8502\GameMapDemo\Textures\pic\5.png)
+![5](https://github.com/FishermanSun666/GameMapDemo/blob/master/Textures/pic/5.png)
 
 ### Post processing - depth of field
 
-![7](E:\NCL\CSC8502\GameMapDemo\Textures\pic\7.png)
+![7](https://github.com/FishermanSun666/GameMapDemo/blob/master/Textures/pic/7.png)
 
 ### Deferred rendering
 
-![8](E:\NCL\CSC8502\GameMapDemo\Textures\pic\8.png)
+![8](https://github.com/FishermanSun666/GameMapDemo/blob/master/Textures/pic/8.png)
 
 ### Texture blending
 
-![6](E:\NCL\CSC8502\GameMapDemo\Textures\pic\6.gif)
+![6](https://github.com/FishermanSun666/GameMapDemo/blob/master/Textures/pic/6.gif)
 
 ### Split screen
 
-![9](E:\NCL\CSC8502\GameMapDemo\Textures\pic\9.png)
+![9](https://github.com/FishermanSun666/GameMapDemo/blob/master/Textures/pic/9.png)

@@ -20,7 +20,7 @@ WASD \ Shift \ Blank - move camera
 
 ### Bump cube mapping
 
-![image]([E:\NCL\CSC8502\GameMapDemo\Textures\pic\2.png](https://github.com/FishermanSun666/GameMapDemo/blob/master/Textures/pic/1.png))
+![image](https://github.com/FishermanSun666/GameMapDemo/blob/master/Textures/pic/1.png)
 
 ### Object surface light
 
